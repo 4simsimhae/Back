@@ -8,4 +8,11 @@ router.put('/join', async (req, res) => {
     res.status(200).send('회원가입 api');
 });
 
+
+//로그인 API
+router.post('/auth/kakao', async (req, res) => {
+    res.status(200).send('회원가입 api');
+});
+
+
 module.exports = router;
