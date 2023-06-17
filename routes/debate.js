@@ -4,17 +4,17 @@ const router = express.Router();
 //const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 
 //좋아요 버튼
-router.put('/:userId/like', async (req, res) => {
+router.post('/:userId/like', async (req, res) => {
     res.status(200).send('좋아요 버튼 api');
 });
 
 //싫어요 버튼
-router.put('/:userId/hate', async (req, res) => {
+router.post('/:userId/hate', async (req, res) => {
     res.status(200).send('싫어요 버튼 api');
 });
 
 //물음표 버튼
-router.put('/:userId/questionMark', async (req, res) => {
+router.post('/:userId/questionMark', async (req, res) => {
     res.status(200).send('물음표 버튼 api');
 });
 
@@ -24,7 +24,7 @@ router.put('/:roomId/challenge', async (req, res) => {
 });
 
 //포기하기 버튼
-router.put('/:roomId/giveupe', async (req, res) => {
+router.put('/:roomId/giveup', async (req, res) => {
     res.status(200).send('포기하기 버튼 api');
 });
 
