@@ -15,7 +15,7 @@ module.exports = () => {
                 try {
                     const exUser = await Users.findOne({
                         where: {
-                            email: profile._json.kakao_account.email,
+                            userEmail: profile._json.kakao_account.email,
                         },
                     });
 
@@ -31,7 +31,6 @@ module.exports = () => {
                     } else {
                         // 새로운 사용자일 경우
                         const newUser = await Users.create({
-                            userName: profile.displayName, // 유저네임 저장
                             userEmail: profile._json.kakao_account.email, // 유저이메일 저장
                         });
 
