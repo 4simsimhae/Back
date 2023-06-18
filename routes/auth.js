@@ -19,7 +19,7 @@ router.get(
         const query = '?token=' + token;
         res.locals.token = token;
 
-        res.redirect(`http://localhost:3000/${query}`);
+        res.redirect(`http://localhost:3000/auth/kakao/callback/${query}`);
     }
 );
 

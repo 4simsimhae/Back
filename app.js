@@ -17,7 +17,7 @@ const swaggerDocs = require('./swagger.js');
 
 const indexRouter = require('./routes/index.js');
 const session = require('express-session');
-const authRouter = require('./routes/auth.js');
+const authRouter = require('./routes/auth.js'); //URL 때문에 index에 안합치고 따로 빼서 구현 했어요!!
 
 app.use(express.json());
 app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDocs)); //스웨거 확인 api
