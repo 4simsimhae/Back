@@ -15,8 +15,21 @@ router.get(
     }),
     // kakaoStrategy에서 성공한다면 콜백 실행
     (req, res) => {
-        res.redirect('/');
+        const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
+        const query = '?token=' + token;
+        res.locals.token = token;
+
+        res.redirect(`http://localhost:3000/auth/kakao/callback/${query}`);
     }
 );
 
+router.get('/auth/logout', (req, res) => {
+    req.logout(function (err) {
+        if (err) {
+            console.error(err);
+            return res.redirect('/'); // 로그아웃 중 에러가 발생한 경우에 대한 처리
+        }
+        res.redirect('http://localhost:3000/'); // 로그아웃 성공 시 리다이렉트
+    });
+});
 module.exports = router;
