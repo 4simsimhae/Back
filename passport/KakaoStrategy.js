@@ -1,7 +1,7 @@
 const passport = require('passport');
 const KakaoStrategy = require('passport-kakao').Strategy;
 const jwt = require('jsonwebtoken');
-const { Users } = require('../models');
+const { User, UserInfo } = require('../models');
 
 module.exports = () => {
     passport.use(
@@ -13,11 +13,13 @@ module.exports = () => {
             // passport-kakao 콜백 함수
             async (accessToken, refreshToken, profile, done) => {
                 try {
-                    const exUser = await Users.findOne({
+                    const exUser = await User.findOne({
                         where: {
                             userEmail: profile._json.kakao_account.email,
                         },
                     });
+                    console.log('accessToken =', accessToken);
+                    console.log('refreshToken =', refreshToken);
 
                     // 기존 사용자일 경우
                     if (exUser) {
@@ -30,7 +32,7 @@ module.exports = () => {
                         return done(null, token);
                     } else {
                         // 새로운 사용자일 경우
-                        const newUser = await Users.create({
+                        const newUser = await User.create({
                             userEmail: profile._json.kakao_account.email, // 유저이메일 저장
                         });
 
