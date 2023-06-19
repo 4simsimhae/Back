@@ -1,5 +1,5 @@
 // const jwt = require('jsonwebtoken');
-// const { Users } = require('../models');
+// const { User } = require('../models');
 
 // module.exports = async (req, res, next) => {
 //     try {
@@ -20,7 +20,7 @@
 //         }
 
 //         //
-//         const { userId } = jwt.verify(authToken, 'chatGPT_key');
+//         const { userId } = jwt.verify(authToken, '');
 //         const user = await Users.findOne({ where: { userId } });
 
 //         res.locals.user = user;
