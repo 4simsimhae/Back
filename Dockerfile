@@ -20,6 +20,5 @@ RUN npm install
 EXPOSE 3000
 
 #컨테이너에서 실행될 명령을 지정
-CMD ["node", "app.js"]
 
-#머지 후 테스트
+CMD ["node", "app.js"]
