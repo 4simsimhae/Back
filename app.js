@@ -24,14 +24,14 @@ app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDocs)); //스웨거
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// CORS 설정
-// const cors = require('cors');
-// app.use(
-//     cors({
-//         origin: ['https://', 'http://localhost:3000'],
-//         credentials: true,
-//     })
-// );
+//CORS 설정
+const cors = require('cors');
+app.use(
+    cors({
+        origin: ['http://localhost:3000/', 'http://localhost:3000'],
+        credentials: true,
+    })
+);
 
 app.use(
     session({
