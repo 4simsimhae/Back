@@ -28,7 +28,7 @@ app.use(cookieParser());
 const cors = require('cors');
 app.use(
     cors({
-        origin: ['http://localhost:3000/', 'http://localhost:3000'],
+        origin: ['https://simsimhae.store', 'http://localhost:3000'],
         credentials: true,
     })
 );
