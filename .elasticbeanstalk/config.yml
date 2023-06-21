@@ -7,7 +7,7 @@ environment-defaults:
     repository: null
 global:
   application_name: simsimhae
-  default_ec2_keyname: sparta_keypair
+  default_ec2_keyname: simsimhae
   default_platform: Docker running on 64bit Amazon Linux 2
   default_region: ap-northeast-2
   include_git_submodules: true
