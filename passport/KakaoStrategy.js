@@ -20,7 +20,7 @@ module.exports = () => {
                     });
                     console.log('accessToken =', accessToken);
                     console.log('refreshToken =', refreshToken);
-                    //console.log('email =', profile._json.kakao_account.email);
+                    console.log('kakaoId =', profile._json.target_id);
 
                     // 기존 사용자일 경우
                     if (exUser) {
