@@ -21,7 +21,6 @@ module.exports = () => {
                     console.log('accessToken =', accessToken);
                     console.log('refreshToken =', refreshToken);
 
-
                     // 기존 사용자일 경우
                     if (exUser) {
                         const token = jwt.sign(
@@ -51,7 +50,10 @@ module.exports = () => {
                             {
                                 userId: newUser.userId,
                             },
-                            process.env.JWT_SECRET
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: '1d',
+                            }
                         );
                         console.log(token);
                         return done(null, token);
