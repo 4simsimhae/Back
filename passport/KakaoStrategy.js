@@ -20,7 +20,17 @@ module.exports = () => {
                     });
                     console.log('accessToken =', accessToken);
                     console.log('refreshToken =', refreshToken);
-                    console.log('kakaoId =', profile.target_id);
+                    //
+                    console.log('_json.target_id =', profile._json.target_id);
+                    console.log('target_id =', profile.target_id);
+                    console.log('_json.target_id_type =', profile._json.target_id_type);
+                    console.log('target_id_type =', profile.target_id_type);
+
+                    //
+                    console.log('------------------');
+                    console.log('done =', profile.done);
+                    console.log('profile =', profile);
+
 
                     // 기존 사용자일 경우
                     if (exUser) {
