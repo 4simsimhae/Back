@@ -15,21 +15,11 @@ module.exports = () => {
                 try {
                     const exUser = await User.findOne({
                         where: {
-                            kakaoId: profile.displayName,
+                            kakaoId: profile.id,
                         },
                     });
                     console.log('accessToken =', accessToken);
                     console.log('refreshToken =', refreshToken);
-                    //
-                    console.log('_json.target_id =', profile._json.target_id);
-                    console.log('target_id =', profile.target_id);
-                    console.log('_json.target_id_type =', profile._json.target_id_type);
-                    console.log('target_id_type =', profile.target_id_type);
-
-                    //
-                    console.log('------------------');
-                    console.log('done =', profile.done);
-                    console.log('profile =', profile);
 
 
                     // 기존 사용자일 경우
@@ -44,7 +34,7 @@ module.exports = () => {
                     } else {
                         // 새로운 사용자일 경우
                         const newUser = await User.create({
-                            kakaoId: profile.displayName, // 유저이메일 저장
+                            kakaoId: profile.id, // 유저이메일 저장
                         });
 
                         await UserInfo.create({
