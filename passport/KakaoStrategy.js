@@ -15,7 +15,7 @@ module.exports = () => {
                 try {
                     const exUser = await User.findOne({
                         where: {
-                            userEmail: profile._json.kakao_account.email,
+                            kakaoId: profile.id,
                         },
                     });
                     console.log('accessToken =', accessToken);
@@ -33,7 +33,7 @@ module.exports = () => {
                     } else {
                         // 새로운 사용자일 경우
                         const newUser = await User.create({
-                            userEmail: profile._json.kakao_account.email, // 유저이메일 저장
+                            kakaoId: profile.id, // 유저이메일 저장
                         });
 
                         await UserInfo.create({
@@ -50,7 +50,10 @@ module.exports = () => {
                             {
                                 userId: newUser.userId,
                             },
-                            process.env.JWT_SECRET
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: '1d',
+                            }
                         );
                         console.log(token);
                         return done(null, token);
