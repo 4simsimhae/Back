@@ -20,6 +20,7 @@ module.exports = () => {
                     });
                     console.log('accessToken =', accessToken);
                     console.log('refreshToken =', refreshToken);
+                    console.log('email =', userEmail);
 
                     // 기존 사용자일 경우
                     if (exUser) {
