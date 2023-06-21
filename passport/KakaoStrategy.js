@@ -33,7 +33,7 @@ module.exports = () => {
                     } else {
                         // 새로운 사용자일 경우
                         const newUser = await User.create({
-                            userEmail: profile._json.kakao_account.email, // 유저이메일 저장
+                            userEmail: profile._json.kakao_account.email, // 카카오에서 제공하는 유저ID 저장
                         });
 
                         await UserInfo.create({
