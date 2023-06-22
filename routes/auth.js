@@ -31,7 +31,9 @@ router.get(
 
             res.redirect(
                 `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
-                //`http://localhost:3000/auth/kakao/callback/${query}`
+            );
+            res.redirect(
+                `http://localhost:3000/auth/kakao/callback/${query}`
             );
         } catch (error) {
             const response = new ApiResponse(
@@ -51,8 +53,10 @@ router.get('/auth/logout', (req, res) => {
         }
         res.redirect(
             'https://front-black-delta.vercel.app/'
-            //'http://localhost:3000/'
         ); // 로그아웃 성공 시 리다이렉트
+        res.redirect(
+            'http://localhost:3000/'
+        );
     });
 });
 module.exports = router;
