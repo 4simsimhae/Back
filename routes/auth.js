@@ -30,7 +30,7 @@ router.get(
         res.locals.token = token;
 
         res.redirect(
-            `http://localhost3000/auth/kakao/callback/${query}`,
+            `http://localhost:3000/auth/kakao/callback/${query}`,
         );
         } catch (error){
             const response = new ApiResponse(
@@ -48,7 +48,7 @@ router.get('/auth/logout', (req, res) => {
             console.error(err);
             return res.redirect('/'); // 로그아웃 중 에러가 발생한 경우에 대한 처리
         }
-        res.redirect('http://localhost3000/'); // 로그아웃 성공 시 리다이렉트
+        res.redirect('http://localhost:3000/'); // 로그아웃 성공 시 리다이렉트
     });
 });
 module.exports = router;
