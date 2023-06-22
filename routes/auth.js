@@ -25,14 +25,15 @@ router.get(
     // kakaoStrategy에서 성공한다면 콜백 실행
     (req, res) => {
         try {
-        const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
-        const query = '?token=' + token;
-        res.locals.token = token;
+            const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
+            const query = '?token=' + token;
+            res.locals.token = token;
 
-        res.redirect(
-            `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
-        );
-        } catch (error){
+            res.redirect(
+                `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
+                //`http://localhost:3000/auth/kakao/callback/${query}`
+            );
+        } catch (error) {
             const response = new ApiResponse(
                 500,
                 '예상하지 못한 서버 문제가 발생했습니다.'
@@ -48,7 +49,10 @@ router.get('/auth/logout', (req, res) => {
             console.error(err);
             return res.redirect('/'); // 로그아웃 중 에러가 발생한 경우에 대한 처리
         }
-        res.redirect('https://front-black-delta.vercel.app/'); // 로그아웃 성공 시 리다이렉트
+        res.redirect(
+            'https://front-black-delta.vercel.app/'
+            //'http://localhost:3000/'
+        ); // 로그아웃 성공 시 리다이렉트
     });
 });
 module.exports = router;
