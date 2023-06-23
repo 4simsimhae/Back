@@ -21,7 +21,7 @@ router.get('/kategorie', async (req, res) => {
         });
         
         const response = new ApiResponse(200, '', kategorielist);
-        return res.status(200).json(response);
+        return res.status(200).json(response)
 
     } catch (error) {
         const response = new ApiResponse(
@@ -35,6 +35,16 @@ router.get('/kategorie', async (req, res) => {
 //게임 방 리스트
 router.get('/roomlist/:kategorieId', async (req, res) => {
     try{
+        const { kategorieId } = req.params;
+
+        const roomlist = await Room.findAll({
+            attributes: ['roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+            where: { kategorieId },
+            //order: [],
+        });
+        
+        const response = new ApiResponse(200, '', roomlist);
+        return res.status(200).json(response)
 
     } catch (error) {
         const response = new ApiResponse(
