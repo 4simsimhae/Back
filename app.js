@@ -30,7 +30,7 @@ app.use(
     cors({
         origin: ['https://simsimhae.store', 'http://localhost:3000/'],
         credentials: true,
-    })
+    }) 
 );
 
 app.use(
