@@ -69,7 +69,7 @@ async function callChatGPT(prompt) {
 // });
 
 //카테고리 별 주제 8개 받기
-router.get('/chatgpt', async (req, res) => {
+router.post('/chatgpt', async (req, res) => {
     try {
         const { kategorieName } = req.body;
         //여기 아래에 있는 문장을 적절하게 수정하여
