@@ -26,8 +26,8 @@ router.get(
     (req, res) => {
         try {
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
-            const query = '?token=' + token;
-            res.locals.token = token;
+            // const query = '?token=' + token;
+            // res.locals.token = token;
             // console.log(token)
             // console.log(res)
 
@@ -39,8 +39,8 @@ router.get(
                 sameSite: 'strict', //none
                 domain: 'localhost', //front 도메인
             };
-
-            req.res.send('').redirect('http://localhost:3000')
+            res.send() // 셋쿠키가 됐는지 확인하고 싶고
+            res.redirect("http://localhost:3000") //리다이렉트 -> localhost:3000
 
             // console.log("hello cpokie")
             // res.redirect(
