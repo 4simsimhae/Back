@@ -30,7 +30,7 @@ router.get(
             res.locals.token = token;
             res.cookie('Authorization', `Bearer ${token}`),
             {
-                domain: "front-black-delta.vercel.app",
+                domain: "simsimhae.store",
                 secure: false,
                 sameSite: "strict",
                 httpOnly: true,
