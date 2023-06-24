@@ -81,7 +81,6 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
             attributes: ["roomName"],
             where: { roomId }
         });
-        console.log('kategorieName = ', roomlist)
         if (!existroomId) {
             const response = new ApiResponse(
                 403,
@@ -156,7 +155,6 @@ router.put('/jury/:roomId', checkLogin, async (req, res) => {
             attributes: ["roomName"],
             where: { roomId }
         });
-        console.log('kategorieName = ', roomlist)
         if (!existroomId) {
             const response = new ApiResponse(
                 403,
@@ -196,7 +194,6 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
             attributes: ["roomName"],
             where: { roomId }
         });
-        console.log('kategorieName = ', roomlist)
         if (!existroomId) {
             const response = new ApiResponse(
                 403,
@@ -206,6 +203,13 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         }
 
         //만약 로그인 유저가 아니라면 오류!
+        if (!userId) {
+            const response = new ApiResponse(
+                403,
+                '로그인이 필요한 서비스입니다.'
+            );
+            return res.status(403).json(response);
+        }
 
         //userInfo 수정
         nickName = '아가리 파이터'; //오픈API로 받기
