@@ -54,40 +54,42 @@ module.exports = (socket) => {
     });
 
     // 토론방 만들기
-    socket.on('createRoom', async (userId, kategorieId) => {
-        try {
-            // 카테고리 정보 조회
-            const kategorie = await Kategorie.findOne({
-                where: { kategorieId },
-            });
-
-            if (!kategorie) {
-                socket.emit('error', '카테고리를 찾을 수 없습니다.');
-                return;
-            }
-
-            // 방 생성 로직 작성
-            const room = await Room.create({
-                kategorieName: kategorie.kategorieName,
-                roomName: '',
-                debater: 0,
-                panel: 0,
-                createdAt: new Date(),
-            });
-
-            // 클라이언트에게 정보 전달
-            socket.emit('roomCreated', {
-                userId,
-                kategorieId: kategorie.kategorieId,
-                kategorieName: kategorie.kategorieName,
-                roomId: room.roomId,
-                roomName: room.roomName,
-            });
-        } catch (error) {
-            console.error('토론방 생성 실패:', error);
-            socket.emit('error', '토론방 생성에 실패했습니다.');
-        }
+socket.on('createRoom', async (userId, kategorieId) => {
+    try {
+    // 카테고리 정보 조회
+    const kategorie = await Kategorie.findOne({
+    where: { kategorieId },
     });
+    if (!kategorie) {
+        socket.emit('error', '카테고리를 찾을 수 없습니다.');
+        return;
+    }
+
+    // 방 생성 로직 작성
+    const room = await Room.create({
+        kategorieName: kategorie.kategorieName,
+        roomName: '',
+        debater: 0,
+        panel: 0,
+        createdAt: new Date(),
+    });
+
+    // 클라이언트에게 정보 전달
+    socket.emit('roomCreated', {
+        userId,
+        kategorieId: kategorie.kategorieId,
+        kategorieName: kategorie.kategorieName,
+        roomId: room.roomId,
+        roomName: room.roomName,
+    });
+
+    // 방 정보 DB에 저장
+    await room.save();
+} catch (error) {
+    console.error('토론방 생성 실패:', error);
+    socket.emit('error', '토론방 생성에 실패했습니다.');
+}
+});
 
     // 게임 시작
     socket.on('startGame', async () => {
