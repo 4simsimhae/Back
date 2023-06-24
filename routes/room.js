@@ -58,6 +58,31 @@ router.get('/roomlist/:kategorieId', async (req, res) => {
 });
 
 
+//게임 방 상세정보
+router.get('/roomlist/room/:roomId', async (req, res) => {
+    try{
+        const { roomId } = req.params;
+
+        const roomlist = await Room.findAll({
+            attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
+            where: { roomId },
+            //order: [],
+        });
+        
+        const response = new ApiResponse(200, '', roomlist);
+        return res.status(200).json(response)
+
+    } catch (error) {
+        const response = new ApiResponse(
+            500,
+            '예상하지 못한 서버 문제가 발생했습니다.'
+        );
+        return res.status(500).json(response);
+    }
+});
+
+
+
 //게임 방 만들기
 router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     try{
