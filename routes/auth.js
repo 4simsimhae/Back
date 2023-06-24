@@ -30,11 +30,11 @@ router.get(
             res.locals.token = token;
             res.cookie('Authorization', `Bearer ${token}`),
             {
-                secure: true,
-                maxAge: 3600000,
-                httpOnly: false,
-                sameSite: 'none',
-                domain: 'simsimhae.store',
+                domain: "front-black-delta.vercel.app",
+                secure: false,
+                sameSite: "strict",
+                httpOnly: true,
+                maxAge: 1000 * 60 * 60 * 24, //1 day
             };
 
             // res.redirect(
