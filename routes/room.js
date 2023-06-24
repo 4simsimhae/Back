@@ -144,7 +144,7 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
         const debater = 0;
         const panel = 0;
 
-        await Room.create({
+        const createdRoom = await Room.create({
             kategorieId,
             kategorieName,
             roomName,
@@ -152,9 +152,11 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             panel,
         });
 
+        const roomId = createdRoom.roomId;
+
         const roomlist = await Room.findAll({
             attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
-            where: { kategorieId, roomName },
+            where: { roomId },
         });
 
         const response = new ApiResponse(200, '', roomlist);
