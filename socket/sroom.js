@@ -1,4 +1,4 @@
-const { UserInfo, Room, Subject, Chat } = require('../models');
+const { UserInfo, Kategorie, Room, Subject, Chat } = require('../models');
 
 module.exports = (socket) => {
     // 토론자로 참여하기
@@ -55,5 +55,61 @@ module.exports = (socket) => {
     });
 
     // 토론방 만들기
-    socket.on('createRoom', async (userId) => {});
+    socket.on('createRoom', async (userId, categoryId) => {
+        try {
+            // 카테고리 정보 조회
+            const kategorie = await Kategorie.findOne({
+                where: { kategorieId: categoryId },
+            });
+
+            if (!kategorie) {
+                socket.emit('error', '카테고리를 찾을 수 없습니다.');
+                return;
+            }
+
+            // 방 생성 로직 작성
+            const room = await Room.create({
+                kategorieName: kategorie.kategorieName,
+                roomName: "",
+                debater: 0,
+                panel: 0,
+                createdAt: new Date(),
+            });
+
+            // 클라이언트에게 정보 전달
+            socket.emit('roomCreated', {
+                userId,
+                categoryId: kategorie.kategorieId,
+                categoryName: kategorie.kategorieName,
+                roomId: room.roomId,
+                roomName: room.roomName,
+                // 추가적인 방 정보 전달
+                // ...
+            });
+        } catch (error) {
+            console.error('토론방 생성 실패:', error);
+            socket.emit('error', '토론방 생성에 실패했습니다.');
+        }
+    });
+
+    // 게임 시작
+    socket.on('startGame', async () => {
+        try {
+          // 주제 랜덤으로 선택
+          const subjects = await Subject.findAll({ limit: 8 }); // 8개의 주제를 랜덤으로 선택
+          const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+          const selectedSubject = randomSubject.subjectList;
+      
+          // 토론방 제목 변경
+          const room = await Room.findOne({ where: { roomId: socket.roomId } });
+          room.roomName = selectedSubject;
+          await room.save();
+      
+          // 클라이언트에 선택된 주제 정보 전달
+          io.to(socket.roomId).emit('gameStarted', selectedSubject);
+        } catch (error) {
+          console.error('게임 시작 실패:', error);
+          socket.emit('error', '게임 시작에 실패했습니다.');
+        }
+      });
 };
