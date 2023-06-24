@@ -213,7 +213,7 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         hate = 0;
         questionMark = 0;
         debater = 1;
-        await UseInfo.update({ nickName, like, hate, questionMark, debater, updatedAt: new Date()}, {
+        await UseInfo.update({ nickName, like, hate, questionMark, debater, updatedAt: new  Date()}, {
             where: { userId }
         });
 
