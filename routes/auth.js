@@ -28,6 +28,7 @@ router.get(
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
             const query = '?token=' + token;
             res.locals.token = token;
+            console.log(token)
             res.cookie('Authorization', `Bearer ${token}`),
             {
                 secure: false,
@@ -37,6 +38,7 @@ router.get(
                 domain: 'localhost', //front 도메인
             };
 
+            console.log("hello cpokie")
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
             // );
@@ -44,6 +46,7 @@ router.get(
             //     `http://localhost:3000/auth/kakao/callback/${query}`
             // );
         } catch (error) {
+            console.log(error)
             const response = new ApiResponse(
                 500,
                 '예상하지 못한 서버 문제가 발생했습니다.'

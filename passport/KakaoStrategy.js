@@ -55,7 +55,7 @@ module.exports = () => {
                                 expiresIn: '1d',
                             }
                         );
-                        console.log(token);
+                        console.log("토큰이 잘보이나요? ",token);
                         return done(null, token);
                     }
                 } catch (error) {
