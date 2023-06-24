@@ -152,7 +152,13 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             debater,
             panel,
         });
-        const response = new ApiResponse(200, '', []);
+
+        // const roomlist = await Room.findAll({
+        //     attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+        //     where: { roomId },
+        // });
+
+        const response = new ApiResponse(200, '', roomlist);
         return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
