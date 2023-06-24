@@ -51,14 +51,14 @@ async function callChatGPT(prompt) {
 
 //         if (reply && reply.content) {
             //응답 들어있는지 확인
-            const content = JSON.parse(reply.content);
-            const objectReply = Object.values(content);
-            res.json({ role: 'user', reply: objectReply });
-            //질문 몇개 DB에 저장하기 코드 추가예정
-        } else {
-            //DB에 저장되어있는 파일 불러오기 코드 추가예정
-            res.json(reply);
-        }
+        //     const content = JSON.parse(reply.content);
+        //     const objectReply = Object.values(content);
+        //     res.json({ role: 'user', reply: objectReply });
+        //     //질문 몇개 DB에 저장하기 코드 추가예정
+        // } else {
+        //     //DB에 저장되어있는 파일 불러오기 코드 추가예정
+        //     res.json(reply);
+        // }
 //         const response = new ApiResponse(200, '', { reply: reply });
 //         return res.status(200).json(response);
 //     } catch (error) {
