@@ -75,11 +75,18 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
             where: { roomId },
         });
         //잘못된 roomId
-        if (!roomlist) {
+        const existroomId = await Room.findOne({
+            attributes: ["roomName"],
+            where: { roomId }
+        });
+        console.log('kategorieName = ', roomlist)
+        if (!existroomId) {
             return res
                 .status(403)
                 .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
         }
+
+        //결과
         const response = new ApiResponse(200, '', roomlist);
         return res.status(200).json(response)
 
@@ -139,7 +146,12 @@ router.put('/jury/:roomId', checkLogin, async (req, res) => {
             where: { roomId },
         });
         //잘못된 roomId
-        if (!roomlist) {
+        const existroomId = await Room.findOne({
+            attributes: ["roomName"],
+            where: { roomId }
+        });
+        console.log('kategorieName = ', roomlist)
+        if (!existroomId) {
             return res
                 .status(403)
                 .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
@@ -172,7 +184,12 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         });
 
         //잘못된 roomId
-        if (!roomlist) {
+        const existroomId = await Room.findOne({
+            attributes: ["roomName"],
+            where: { roomId }
+        });
+        console.log('kategorieName = ', roomlist)
+        if (!existroomId) {
             return res
                 .status(403)
                 .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
