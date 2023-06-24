@@ -34,7 +34,7 @@ router.get(
                 maxAge: 3600000,
                 httpOnly: false,
                 sameSite: 'none',
-                domain: 'front-black-delta.vercel.app',
+                domain: 'simsimhae.store',
             };
 
             // res.redirect(
