@@ -40,7 +40,7 @@ router.get(
                 domain: 'localhost', //front 도메인
             };
             res.send() // 셋쿠키가 됐는지 확인f하고 싶고
-            res.redirect("http://localhost:3000") //리다이렉트 -> localhost:3000
+            //res.redirect("http://localhost:3000") //리다이렉트 -> localhost:3000
 
             // console.log("hello cpokie")
             // res.redirect(
