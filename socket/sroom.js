@@ -21,8 +21,7 @@ module.exports = (socket) => {
             // 클라이언트에게 정보 전달
             socket.emit('debateJoined', {
                 userId,
-                subject: selectedSubject.subjectList,
-                roomId: room.roomId,
+                roomId: socket.roomId,
             });
         } catch (error) {
             console.error('토론 참여 처리 실패:', error);
@@ -55,11 +54,11 @@ module.exports = (socket) => {
     });
 
     // 토론방 만들기
-    socket.on('createRoom', async (userId, categoryId) => {
+    socket.on('createRoom', async (userId, kategorieId) => {
         try {
             // 카테고리 정보 조회
             const kategorie = await Kategorie.findOne({
-                where: { kategorieId: categoryId },
+                where: { kategorieId },
             });
 
             if (!kategorie) {
@@ -70,7 +69,7 @@ module.exports = (socket) => {
             // 방 생성 로직 작성
             const room = await Room.create({
                 kategorieName: kategorie.kategorieName,
-                roomName: "",
+                roomName: '',
                 debater: 0,
                 panel: 0,
                 createdAt: new Date(),
@@ -79,12 +78,10 @@ module.exports = (socket) => {
             // 클라이언트에게 정보 전달
             socket.emit('roomCreated', {
                 userId,
-                categoryId: kategorie.kategorieId,
-                categoryName: kategorie.kategorieName,
+                kategorieId: kategorie.kategorieId,
+                kategorieName: kategorie.kategorieName,
                 roomId: room.roomId,
                 roomName: room.roomName,
-                // 추가적인 방 정보 전달
-                // ...
             });
         } catch (error) {
             console.error('토론방 생성 실패:', error);
@@ -95,21 +92,21 @@ module.exports = (socket) => {
     // 게임 시작
     socket.on('startGame', async () => {
         try {
-          // 주제 랜덤으로 선택
-          const subjects = await Subject.findAll({ limit: 8 }); // 8개의 주제를 랜덤으로 선택
-          const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
-          const selectedSubject = randomSubject.subjectList;
-      
-          // 토론방 제목 변경
-          const room = await Room.findOne({ where: { roomId: socket.roomId } });
-          room.roomName = selectedSubject;
-          await room.save();
-      
-          // 클라이언트에 선택된 주제 정보 전달
-          io.to(socket.roomId).emit('gameStarted', selectedSubject);
+            // 주제 랜덤으로 선택
+            const subjects = await Subject.findAll({ limit: 8 }); // 8개의 주제를 랜덤으로 선택
+            const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+            const selectedSubject = randomSubject.subjectList;
+
+            // 토론방 제목 변경
+            const room = await Room.findOne({ where: { roomId: socket.roomId } });
+            room.roomName = selectedSubject;
+            await room.save();
+
+            // 클라이언트에 선택된 주제 정보 전달
+            socket.emit('gameStarted', selectedSubject);
         } catch (error) {
-          console.error('게임 시작 실패:', error);
-          socket.emit('error', '게임 시작에 실패했습니다.');
+            console.error('게임 시작 실패:', error);
+            socket.emit('error', '게임 시작에 실패했습니다.');
         }
-      });
+    });
 };
