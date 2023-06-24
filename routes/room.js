@@ -151,10 +151,6 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
         const { roomId } = req.params;
         const { userId } = res.locals.user;
 
-        const roomlist = await Room.findAll({
-            attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
-            where: { roomId },
-        });
         //잘못된 roomId
         const existroomId = await Room.findOne({
             attributes: ['roomName'],
@@ -167,6 +163,19 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
             );
             return res.status(403).json(response);
         }
+
+        // //토론자가 꽉찬 경우
+        // const fullpanel = await Room.findOne({
+        //     attributes: ['panel'],
+        //     where: { roomId },
+        // });
+        // if (fullpanel>=8){
+        //     const response = new ApiResponse(
+        //         403,
+        //         '인원수가 초과되었습니다.'
+        //     );
+        //     return res.status(403).json(response);
+        // }
 
         //userInfo 수정
         const nickName = '구경꾼'; //오픈API로 받기
@@ -181,6 +190,7 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
             await UserInfo.create(
                 {
                     userId : nologinuserId,
+                    roomId,
                     nickName,
                     like,
                     hate,
@@ -193,6 +203,7 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
             await UserInfo.update(
                 {
                     nickName,
+                    roomId,
                     like,
                     hate,
                     questionMark,
@@ -271,6 +282,7 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         await UserInfo.update(
             {
                 nickName,
+                roomId,
                 like,
                 hate,
                 questionMark,
