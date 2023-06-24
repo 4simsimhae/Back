@@ -30,7 +30,7 @@ router.get(
             res.locals.token = token;
             res.cookie('Authorization', `Bearer ${token}`),
             {
-                secure: true,
+                secure: false,
                 maxAge: 3600000,
                 httpOnly: false,
                 sameSite: 'strict',
