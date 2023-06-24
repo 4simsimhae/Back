@@ -28,8 +28,8 @@ router.get(
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
             const query = '?token=' + token;
             res.locals.token = token;
-            console.log(token)
-            console.log(res)
+            // console.log(token)
+            // console.log(res)
 
             res.cookie('Authorization', `Bearer ${token}`),
             {
@@ -40,9 +40,9 @@ router.get(
                 domain: 'localhost', //front 도메인
             };
 
-            res.send('').redirect(`http://localhost:3000`)
+            req.res.send('').redirect('http://localhost:3000')
 
-            console.log("hello cpokie")
+            // console.log("hello cpokie")
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
             // );
