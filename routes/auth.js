@@ -30,7 +30,7 @@ router.get(
             res.locals.token = token;
             res.cookie('Authorization', `Bearer ${token}`),
             {
-                domain: "simsimhae.store",
+                domain: "localhost",
                 secure: false,
                 sameSite: "strict",
                 httpOnly: true,
