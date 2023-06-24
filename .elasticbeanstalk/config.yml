@@ -1,6 +1,12 @@
 branch-defaults:
   master:
     environment: Simsimhae-env
+  room:
+    environment: Simsimhae-env
+  taehui:
+    environment: Simsimhae-env
+  testbranch:
+    environment: Simsimhae-env
 environment-defaults:
   Simsimhae-env:
     branch: null
