@@ -29,7 +29,11 @@ router.get(
             const query = '?token=' + token;
             res.locals.token = token;
             console.log(token)
-            req.res.cookie('Authorization', `Bearer ${token}`),
+
+
+            res.
+
+            res.send.cookie('Authorization', `Bearer ${token}`),
             {
                 secure: false,
                 maxAge: 3600000,
