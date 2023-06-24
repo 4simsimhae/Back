@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { User, Kategorie, UseInfo, Room, subject, chat } = require('../models');
+const randomName = require('../middlewares/randomName.js');
 //const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
+
 
 // 응답 객체
 class ApiResponse {
@@ -57,7 +59,7 @@ router.get('/roomlist/:kategorieId', async (req, res) => {
 
 
 //게임 방 만들기
-router.post('/roomlist/:kategorieId', async (req, res) => {
+router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     try{
         const { kategorieId } = req.params;
         //const { KategorieName } = req.body;
@@ -66,9 +68,9 @@ router.post('/roomlist/:kategorieId', async (req, res) => {
             attributes: ["kategorieName"],
             where: { kategorieId }
         });
-        console.log(kategorieName);
 
-        const roomName = ''; //openAPI로 이름받기
+        //const roomName = res.locals.random; //openAPI로 이름받기
+        const roomName = '길에 서있는 탄산수';
         const debater = 0;
         const panel = 0;
 

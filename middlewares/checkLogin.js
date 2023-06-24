@@ -23,7 +23,7 @@ module.exports = async (req, res, next) => {
         const { userId } = jwt.verify(authToken, '');
         const user = await Users.findOne({ where: { userId } });
 
-        res.locals.user = user;
+        res.locals.user = Name;
         next();
     } catch (error) {
         return res
