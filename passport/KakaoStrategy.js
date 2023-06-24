@@ -1,7 +1,7 @@
 const passport = require('passport');
 const KakaoStrategy = require('passport-kakao').Strategy;
 const jwt = require('jsonwebtoken');
-const { User, UserInfo } = require('../models');
+const { User, UserInfo } = require('../models');s
 
 module.exports = () => {
     passport.use(

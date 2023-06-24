@@ -26,26 +26,23 @@ router.get(
     (req, res) => {
         try {
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
-            // const query = '?token=' + token;
-            // res.locals.token = token;
-            // console.log(token)
-            // console.log(res)
+            const query = '?token=' + token;
+            res.locals.token = token;
+            console.log(token)
 
             res.cookie('Authorization', `Bearer ${token}`,
             {
-                secure: false,
+                secure: true,
                 maxAge: 3600000,
                 httpOnly: false,
-                sameSite: 'strict', //none
-                domain: 'localhost', //front 도메인
+                sameSite: 'none', //none
+                domain: 'simsimhae.store', //front 도메인
             });
-            res.send() // 셋쿠키가 됐는지 확인하고 싶고
-            res.redirect("http://localhost:3000") //리다이렉트 -> localhost:3000
 
-            // console.log("hello cpokie")
-            // res.redirect(
-            //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
-            // );
+            console.log("hello cpokie")
+            res.redirect(
+                `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
+            );
             // res.redirect(
             //     `http://localhost:3000/auth/kakao/callback/${query}`
             // );
@@ -66,9 +63,9 @@ router.get('/auth/logout', (req, res) => {
             console.error(err);
             return res.redirect('/'); // 로그아웃 중 에러가 발생한 경우에 대한 처리
         }
-        // res.redirect(
-        //     'https://front-black-delta.vercel.app/'
-        // ); // 로그아웃 성공 시 리다이렉트
+        res.redirect(
+            'https://front-black-delta.vercel.app/'
+        ); // 로그아웃 성공 시 리다이렉트
         res.redirect(
             'http://localhost:3000/'
         );
