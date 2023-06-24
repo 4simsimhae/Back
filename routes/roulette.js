@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Kategorie, UseInfo, Room, Subject, chat } = require('../models');
+const { User, Kategorie, UserInfo, Room, Subject, chat } = require('../models');
 //const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 
 //open API
