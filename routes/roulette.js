@@ -79,15 +79,12 @@ router.post('/chatgpt', async (req, res) => {
         const { ask } = {
             ask: `${kategorieName}에 관련해서 유머러스한 토론 주제 8가지를 새로 추천해줘`,
         };
-        console.log(ask);
-        const reply = await callChatGPT([{ role: 'user', content: ask }]);
 
+        const reply = await callChatGPT([{ role: 'user', content: ask }]);
         //몇초 기다린 후 없으면 DB값 불러오기
-        if (reply && reply.content) {
+        if (reply) {
             //응답 들어있는지 확인
-            const content = JSON.parse(reply.content);
-            const objectReply = Object.values(content);
-            res.json({ role: 'user', reply: objectReply });
+            res.json(reply);
             //질문 몇개 DB에 저장하기 코드 추가예정
         } else {
             //DB에 저장되어있는 파일 불러오기 코드 추가예정
