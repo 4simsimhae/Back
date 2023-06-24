@@ -25,13 +25,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // CORS 설정
-// const cors = require('cors');
-// app.use(
-//     cors({
-//         origin: ['https://', 'http://localhost:3000'],
-//         credentials: true,
-//     })
-// );
+const cors = require('cors');
+app.use(
+    cors({
+        origin: ['https://', 'http://localhost:3000'],
+        credentials: true,
+    })
+);
 
 app.use(
     session({
@@ -39,7 +39,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            domain: 'http://localhost:3000', // .ysizuku.com으로 설정하면 모든 서브도메인에서 쿠키를 사용할 수 있습니다.
+            domain: 'http://localhost:3000',
             path: '/', // /로 설정하면 모든 페이지에서 쿠키를 사용할 수 있습니다.
             secure: false, // https가 아닌 환경에서도 사용할 수 있습니다.
             httpOnly: false, // 자바스크립트에서 쿠키를 확인할 수 있습니다.
