@@ -13,6 +13,23 @@ class ApiResponse {
     }
 }
 
+/**
+ * @swagger
+ * paths:
+ *  /api/kategoriet:
+ *      get:
+ *          summary: "카테고리 목록"
+ *          requestBody:
+ *              content:
+ * 
+ *          responses:
+ *              "200":
+ *                  description: ""
+ * 
+ *              "500":
+ *                  description: "예상하지 못한 서버 문제가 발생했습니다."
+ */
+
 //카테고리 목록
 router.get('/kategorie', async (req, res) => {
     try {
@@ -103,47 +120,54 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
     }
 });
 
-// //게임 방 만들기
-// router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
-//     try {
-//         const { kategorieId } = req.params;
+//게임 방 만들기
+router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
+    try {
+        const { kategorieId } = req.params;
+        //const newroomName = res.locals.random; //openAPI로 이름받기
+        //console.log('랜덤 아이디 = ', newroomName);
 
-//         const { kategorieName } = await Kategorie.findOne({
-//             attributes: ['kategorieName'],
-//             where: { kategorieId },
-//         });
+        const { kategorieName } = await Kategorie.findOne({
+            attributes: ['kategorieName'],
+            where: { kategorieId },
+        });
 
-//         //잘못된 kategorieId
-//         if (kategorieId > 8 || kategorieId < 1) {
-//             const response = new ApiResponse(
-//                 403,
-//                 '해당 카테고리를 찾을 수 없습니다.'
-//             );
-//             return res.status(403).json(response);
-//         }
+        //잘못된 kategorieId
+        if (kategorieId > 8 || kategorieId < 1) {
+            const response = new ApiResponse(
+                403,
+                '해당 카테고리를 찾을 수 없습니다.'
+            );
+            return res.status(403).json(response);
+        }
 
-//         //const roomName = res.locals.random; //openAPI로 이름받기
-//         const roomName = '길에 서있는 탄산수';
-//         const debater = 0;
-//         const panel = 0;
+        const roomName = '길에 서있는 탄산수';
+        const debater = 0;
+        const panel = 0;
 
-//         await Room.create({
-//             kategorieId,
-//             kategorieName,
-//             roomName,
-//             debater,
-//             panel,
-//         });
-//         const response = new ApiResponse(200, '', []);
-//         return res.status(200).json(response);
-//     } catch (error) {
-//         const response = new ApiResponse(
-//             500,
-//             '예상하지 못한 서버 문제가 발생했습니다.'
-//         );
-//         return res.status(500).json(response);
-//     }
-// });
+        await Room.create({
+            kategorieId,
+            kategorieName,
+            roomName,
+            debater,
+            panel,
+        });
+
+        // const roomlist = await Room.findAll({
+        //     attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+        //     where: { roomId },
+        // });
+
+        const response = new ApiResponse(200, '', roomlist);
+        return res.status(200).json(response);
+    } catch (error) {
+        const response = new ApiResponse(
+            500,
+            '예상하지 못한 서버 문제가 발생했습니다.'
+        );
+        return res.status(500).json(response);
+    }
+});
 
 //구경꾼으로 참여하기
 router.put('/panel/:roomId', checkLogin, async (req, res) => {
