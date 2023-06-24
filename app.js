@@ -65,6 +65,7 @@ passport.deserializeUser((token, done) => {
     try {
         // 토큰을 이용하여 사용자를 인증 또는 사용자 정보를 가져오는 로직 구현
         // 예시: 토큰에서 userId를 추출하여 사용자 정보를 가져옴
+        console.log('app.js에 담겨 decoded된 토큰 = ', token);
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId;
 
