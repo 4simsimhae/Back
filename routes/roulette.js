@@ -49,14 +49,16 @@ async function callChatGPT(prompt) {
 //         };
 //         const reply = await callChatGPT([{ role: 'user', content: ask }]);
 
-//         if (reply) {
-//             //응답 들어있는지 확인
-//             res.json({ reply });
-//             //질문 몇개 DB에 저장하기 코드 추가예정
-//         } else {
-//             //DB에 저장되어있는 파일 불러오기 코드 추가예정
-//             res.json({ reply });
-//         }
+//         if (reply && reply.content) {
+            //응답 들어있는지 확인
+            const content = JSON.parse(reply.content);
+            const objectReply = Object.values(content);
+            res.json({ role: 'user', reply: objectReply });
+            //질문 몇개 DB에 저장하기 코드 추가예정
+        } else {
+            //DB에 저장되어있는 파일 불러오기 코드 추가예정
+            res.json(reply);
+        }
 //         const response = new ApiResponse(200, '', { reply: reply });
 //         return res.status(200).json(response);
 //     } catch (error) {
@@ -81,16 +83,15 @@ router.post('/chatgpt', async (req, res) => {
         const reply = await callChatGPT([{ role: 'user', content: ask }]);
 
         //몇초 기다린 후 없으면 DB값 불러오기
-        if (reply) {
+        if (reply && reply.content) {
             //응답 들어있는지 확인
-            const response = new ApiResponse(201, '', {
-                answer: reply.content,
-            });
-            return res.status(201).json(response);
+            const content = JSON.parse(reply.content);
+            const objectReply = Object.values(content);
+            res.json({ role: 'user', reply: objectReply });
             //질문 몇개 DB에 저장하기 코드 추가예정
         } else {
             //DB에 저장되어있는 파일 불러오기 코드 추가예정
-            res.json({ reply });
+            res.json(reply);
         }
     } catch (error) {
         const response = new ApiResponse(

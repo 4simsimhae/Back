@@ -32,8 +32,10 @@
     "passport-kakao": "^1.0.1",
     "sequelize": "^6.32.0",
     "session": "^0.1.0",
+    "socket.io": "^4.7.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^4.6.3"
+    "swagger-ui-express": "^4.6.3",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.22",
