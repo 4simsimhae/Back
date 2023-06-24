@@ -13,7 +13,7 @@ class ApiResponse {
 module.exports = async (req, res, next) => {
     try {
         // const Authorization = req.header('Authorization');
-        console.log(req.cookies)
+        console.log('쿠키? = ',req.cookies)
         const Authorization = req.cookies('Authorization');
         //토큰이 있는지 확인
         if (!Authorization) {

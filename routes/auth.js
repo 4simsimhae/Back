@@ -31,15 +31,15 @@ router.get(
             // console.log(token)
             // console.log(res)
 
-            res.cookie('Authorization', `Bearer ${token}`),
+            res.cookie('Authorization', `Bearer ${token}`,
             {
                 secure: false,
                 maxAge: 3600000,
                 httpOnly: false,
                 sameSite: 'strict', //none
                 domain: 'localhost', //front 도메인
-            };
-            res.send() // 셋쿠키가 됐는지 확인f하고 싶고
+            });
+            res.send() // 셋쿠키가 됐는지 확인하고 싶고
             //res.redirect("http://localhost:3000") //리다이렉트 -> localhost:3000
 
             // console.log("hello cpokie")
