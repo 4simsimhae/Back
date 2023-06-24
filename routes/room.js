@@ -141,7 +141,7 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             return res.status(403).json(response);
         }
 
-        const roomName = '길에 서있는 탄산수';
+        const roomName = '고민중인 진구';
         const debater = 0;
         const panel = 0;
 
@@ -153,10 +153,10 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             panel,
         });
 
-        // const roomlist = await Room.findAll({
-        //     attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
-        //     where: { roomId },
-        // });
+        const roomlist = await Room.findAll({
+            attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+            where: { kategorieId, roomName},
+        });
 
         const response = new ApiResponse(200, '', roomlist);
         return res.status(200).json(response);
