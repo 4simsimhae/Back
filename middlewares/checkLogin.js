@@ -20,10 +20,10 @@ module.exports = async (req, res, next) => {
         }
 
         //
-        const { userId } = jwt.verify(authToken, '');
-        const user = await Users.findOne({ where: { userId } });
+        const { userId } = jwt.verify(authToken, process.env.JWT_SECRET);
+        const user = await User.findOne({ where: { userId } });
 
-        res.locals.user = Name;
+        res.locals.user = user;
         next();
     } catch (error) {
         return res

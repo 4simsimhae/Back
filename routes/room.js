@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Kategorie, UseInfo, Room, subject, chat } = require('../models');
 const randomName = require('../middlewares/randomName.js');
-//const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
+const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 
 
 // 응답 객체
@@ -44,6 +44,13 @@ router.get('/roomlist/:kategorieId', async (req, res) => {
             where: { kategorieId },
             //order: [],
         });
+
+        //잘못된 kategorieId
+        if (kategorieId>8 || kategorieId<1) {
+            return res
+                .status(403)
+                .json({ errorMessage: '존재하지 않는 카테고리 입니다.' });
+        }
         
         const response = new ApiResponse(200, '', roomlist);
         return res.status(200).json(response)
@@ -66,9 +73,13 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
         const roomlist = await Room.findAll({
             attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
             where: { roomId },
-            //order: [],
         });
-        
+        //잘못된 roomId
+        if (!roomlist) {
+            return res
+                .status(403)
+                .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
+        }
         const response = new ApiResponse(200, '', roomlist);
         return res.status(200).json(response)
 
@@ -87,12 +98,18 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
 router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     try{
         const { kategorieId } = req.params;
-        //const { KategorieName } = req.body;
 
         const { kategorieName } = await Kategorie.findOne({
             attributes: ["kategorieName"],
             where: { kategorieId }
         });
+
+        //잘못된 kategorieId
+        if (kategorieId>8 || kategorieId<1) {
+            return res
+                .status(403)
+                .json({ errorMessage: '존재하지 않는 카테고리 입니다.' });
+        }
 
         //const roomName = res.locals.random; //openAPI로 이름받기
         const roomName = '길에 서있는 탄산수';
@@ -112,9 +129,28 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
 });
 
 //배심원으로 참여하기
-router.put('/jury/:roomId', async (req, res) => {
+router.put('/jury/:roomId', checkLogin, async (req, res) => {
     try{
+        const { roomId } = req.params;
+        const { userId } = res.locals.user;
 
+        const roomlist = await Room.findAll({
+            attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
+            where: { roomId },
+        });
+        //잘못된 roomId
+        if (!roomlist) {
+            return res
+                .status(403)
+                .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
+        }
+        //만약 로그인 유저가 아니라면! 정보만들기
+
+        //로그인 유저라면 정보 수정하기!
+
+        //결과
+        const response = new ApiResponse(200, '', []);
+        return res.status(200).json(response)
     } catch (error) {
         const response = new ApiResponse(
             500,
@@ -125,9 +161,47 @@ router.put('/jury/:roomId', async (req, res) => {
 });
 
 //토론자로 참여하기
-router.put('/discussant/:roomId', async (req, res) => {
+router.put('/discussant/:roomId', checkLogin, async (req, res) => {
     try{
+        const { roomId } = req.params;
+        const { userId } = res.locals.user;
 
+        const roomlist = await Room.findAll({
+            attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
+            where: { roomId },
+        });
+
+        //잘못된 roomId
+        if (!roomlist) {
+            return res
+                .status(403)
+                .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
+        }
+
+        //만약 로그인 유저가 아니라면 오류!
+
+        //userInfo 수정
+        nickName = '아가리 파이터'; //오픈API로 받기
+        like = 0;
+        hate = 0;
+        questionMark = 0;
+        debater = 1;
+        await UseInfo.update({ nickName, like, hate, questionMark, debater, updatedAt: new Date()}, {
+            where: { userId }
+        });
+
+        //방 토론자 수 증가
+        const { debaterNumber } = await Room.findOne({
+            attributes: ["debater"],
+            where: { roomId }
+        });
+        await Room.update({ debater : debaterNumber.debater + 1 }, {
+            where: { roomId }
+        });
+
+        //결과
+        const response = new ApiResponse(200, '', []);
+        return res.status(200).json(response)
     } catch (error) {
         const response = new ApiResponse(
             500,

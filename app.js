@@ -28,9 +28,9 @@ app.use(cookieParser());
 const cors = require('cors');
 app.use(
     cors({
-        origin: ['https://simsimhae.store','http://localhost:3000'],
+        origin: ['https://simsimhae.store', 'http://localhost:3000'],
         credentials: true,
-    }) 
+    })
 );
 
 app.use(
@@ -55,18 +55,26 @@ passport.serializeUser((token, done) => {
 });
 
 passport.deserializeUser((token, done) => {
-    // 토큰을 이용하여 사용자를 인증 또는 사용자 정보를 가져오는 로직 구현
-    // 예시: 토큰에서 userId를 추출하여 사용자 정보를 가져옴
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    try {
+        // 토큰을 이용하여 사용자를 인증 또는 사용자 정보를 가져오는 로직 구현
+        // 예시: 토큰에서 userId를 추출하여 사용자 정보를 가져옴
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
 
-    Users.findByPk(userId)
-        .then((user) => {
-            done(null, user); // 사용자 객체를 세션에서 가져옴
-        })
-        .catch((err) => {
-            done(err);
-        });
+        Users.findByPk(userId)
+            .then((user) => {
+                done(null, user); // 사용자 객체를 세션에서 가져옴
+            })
+            .catch((err) => {
+                done(err);
+            });
+    } catch {
+        const response = new ApiResponse(
+            500,
+            '예상하지 못한 서버 문제가 발생했습니다.'
+        );
+        return res.status(500).json(response);
+    }
 });
 
 kakao(); // kakaoStrategy.js의 module.exports를 실행합니다.
@@ -80,4 +88,4 @@ app.get('/', (req, res) => {
 
 app.listen(3000, () => {
     console.log('3000 포트로 서버 연결');
-});//
+}); //
