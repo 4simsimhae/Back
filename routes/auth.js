@@ -33,16 +33,16 @@ router.get(
                 secure: false,
                 maxAge: 3600000,
                 httpOnly: false,
-                sameSite: 'strict',
-                domain: 'localhost',
+                sameSite: 'strict', //none
+                domain: 'localhost', //front 도메인
             };
 
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
             // );
-            res.redirect(
-                `http://localhost:3000/auth/kakao/callback/${query}`
-            );
+            // res.redirect(
+            //     `http://localhost:3000/auth/kakao/callback/${query}`
+            // );
         } catch (error) {
             const response = new ApiResponse(
                 500,
