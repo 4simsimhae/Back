@@ -47,9 +47,11 @@ router.get('/roomlist/:kategorieId', async (req, res) => {
 
         //잘못된 kategorieId
         if (kategorieId>8 || kategorieId<1) {
-            return res
-                .status(403)
-                .json({ errorMessage: '존재하지 않는 카테고리 입니다.' });
+            const response = new ApiResponse(
+                403,
+                '해당 카테고리를 찾을 수 없습니다.'
+            );
+            return res.status(403).json(response);
         }
         
         const response = new ApiResponse(200, '', roomlist);
@@ -81,9 +83,11 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
         });
         console.log('kategorieName = ', roomlist)
         if (!existroomId) {
-            return res
-                .status(403)
-                .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
+            const response = new ApiResponse(
+                403,
+                '존재하지 않는 게임방입니다.'
+            );
+            return res.status(403).json(response);
         }
 
         //결과
@@ -113,9 +117,11 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
 
         //잘못된 kategorieId
         if (kategorieId>8 || kategorieId<1) {
-            return res
-                .status(403)
-                .json({ errorMessage: '존재하지 않는 카테고리 입니다.' });
+            const response = new ApiResponse(
+                403,
+                '해당 카테고리를 찾을 수 없습니다.'
+            );
+            return res.status(403).json(response);
         }
 
         //const roomName = res.locals.random; //openAPI로 이름받기
@@ -152,9 +158,11 @@ router.put('/jury/:roomId', checkLogin, async (req, res) => {
         });
         console.log('kategorieName = ', roomlist)
         if (!existroomId) {
-            return res
-                .status(403)
-                .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
+            const response = new ApiResponse(
+                403,
+                '존재하지 않는 게임방입니다.'
+            );
+            return res.status(403).json(response);
         }
         //만약 로그인 유저가 아니라면! 정보만들기
 
@@ -190,9 +198,11 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         });
         console.log('kategorieName = ', roomlist)
         if (!existroomId) {
-            return res
-                .status(403)
-                .json({ errorMessage: '존재하지 않는 게임방 입니다.' });
+            const response = new ApiResponse(
+                403,
+                '존재하지 않는 게임방입니다.'
+            );
+            return res.status(403).json(response);
         }
 
         //만약 로그인 유저가 아니라면 오류!
