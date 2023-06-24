@@ -40,7 +40,7 @@ router.get(
                 domain: 'localhost', //front 도메인
             };
 
-            res.send('')
+            res.send('').redirect(`http://localhost:3000`)
 
             console.log("hello cpokie")
             // res.redirect(

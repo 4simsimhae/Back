@@ -14,9 +14,11 @@ module.exports = async (req, res, next) => {
     try {
         const Authorization = req.cookies('Authorization');
         //토큰이 있는지 확인
+        console.log(req.cookies)
         if (!Authorization) {
             res.locals.user = [];
         } else {
+            console.log("읽어지나?")
             const [authType, authToken] = Authorization.split(' ');
             console.log(Authorization, authType, authToken);
 
