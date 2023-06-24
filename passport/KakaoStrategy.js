@@ -15,7 +15,7 @@ module.exports = () => {
                 try {
                     const exUser = await User.findOne({
                         where: {
-                            userEmail: profile.id,
+                            kakaoId: profile.id,
                         },
                     });
                     console.log('accessToken =', accessToken);
@@ -50,7 +50,10 @@ module.exports = () => {
                             {
                                 userId: newUser.userId,
                             },
-                            process.env.JWT_SECRET
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: '1d',
+                            }
                         );
                         console.log(token);
                         return done(null, token);

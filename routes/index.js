@@ -5,6 +5,5 @@ const chat = require('./chat');
 // const debate = require('./debate');
 const room = require('./room');
 const roulette = require('./roulette');
-const user = require('./user');
 
 module.exports = [chat, room, roulette, user];
