@@ -29,11 +29,9 @@ router.get(
             const query = '?token=' + token;
             res.locals.token = token;
             console.log(token)
+            console.log(res)
 
-
-            res.
-
-            res.send.cookie('Authorization', `Bearer ${token}`),
+            res.cookie('Authorization', `Bearer ${token}`),
             {
                 secure: false,
                 maxAge: 3600000,
@@ -41,6 +39,8 @@ router.get(
                 sameSite: 'strict', //none
                 domain: 'localhost', //front 도메인
             };
+
+            res.send('')
 
             console.log("hello cpokie")
             // res.redirect(
