@@ -124,8 +124,8 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
 router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     try {
         const { kategorieId } = req.params;
-        const newroomName = res.locals.random; //openAPI로 이름받기
-        console.log('랜덤 아이디 = ', newroomName);
+        //const newroomName = res.locals.random; //openAPI로 이름받기
+        //console.log('랜덤 아이디 = ', newroomName);
 
         const { kategorieName } = await Kategorie.findOne({
             attributes: ['kategorieName'],

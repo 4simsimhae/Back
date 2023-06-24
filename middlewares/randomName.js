@@ -12,22 +12,22 @@ class ApiResponse {
 
 module.exports = async (req, res, next) => {
     try {
-        var c = new Crawler({
-            maxConnections: 10,
-            callback: function (error, res, next) {
-                if (error) {
-                    console.log(error);
-                } else {
-                    var $ = res.$;
-                    console.log($('title').text());
-                    const randomName = $('h1').text();
-                    return res.json({ randomName });
+        // var c = new Crawler({
+        //     maxConnections: 10,
+        //     callback: function (error, res, next) {
+        //         if (error) {
+        //             console.log(error);
+        //         } else {
+        //             var $ = res.$;
+        //             console.log($('title').text());
+        //             const randomName = $('h1').text();
+        //             return res.json({ randomName });
                     
-                }
-            },
-        });
-        c.queue('https://nickname.hwanmoo.kr/');
-        res.locals.random = randomName;
+        //         }
+        //     },
+        // });
+        // c.queue('https://nickname.hwanmoo.kr/');
+        // res.locals.random = randomName;
         next();
 
     } catch (error) {

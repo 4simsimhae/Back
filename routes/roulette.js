@@ -77,14 +77,17 @@ router.post('/chatgpt', async (req, res) => {
         //여기 아래에 있는 문장을 적절하게 수정하여
         //우리가 원하는 형식의 질문을 받아야합니다.
         const { ask } = {
-            ask: `${kategorieName}에 관련해서 유머러스한 토론 주제 8가지를 새로 추천해줘`,
+            ask: `${kategorieName} 카테고리에 대한 황당하고 엽기스러운 토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
         };
 
         const reply = await callChatGPT([{ role: 'user', content: ask }]);
+        
         //몇초 기다린 후 없으면 DB값 불러오기
-        if (reply) {
+        if (reply && reply.content) {
             //응답 들어있는지 확인
-            res.json(reply);
+            const content = JSON.parse(reply.content);
+            const objectReply = Object.values(content);
+            res.json({ role: 'user', reply: objectReply });
             //질문 몇개 DB에 저장하기 코드 추가예정
         } else {
             //DB에 저장되어있는 파일 불러오기 코드 추가예정
