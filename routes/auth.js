@@ -28,6 +28,14 @@ router.get(
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
             const query = '?token=' + token;
             res.locals.token = token;
+            res.cookie('Authorization', `Bearer ${token}`),
+            {
+                secure: true,
+                maxAge: 3600000,
+                httpOnly: false,
+                sameSite: 'none',
+                domain: 'https://front-black-delta.vercel.app',
+            };
 
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
