@@ -1,7 +1,7 @@
 const { UserInfo, Kategorie, Room, Subject, Chat } = require('../models');
 
 module.exports = (socket) => {
-    // 토론자로 참여하기
+    // 토론자로 참여하기/
     socket.on('joinDebate', async (userId) => {
         try {
             // userId 조회
