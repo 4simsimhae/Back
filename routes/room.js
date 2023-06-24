@@ -13,6 +13,28 @@ class ApiResponse {
     }
 }
 
+/**
+ * @swagger
+ * paths:
+ *  /api/kategoriet:
+ *      get:
+ *          summary: "카테고리 목록"
+ *          requestBody:
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              token:
+ *                                  type: string
+ *          responses:
+ *              "200":
+ *                  description: ""
+ * 
+ *              "500":
+ *                  description: "예상하지 못한 서버 문제가 발생했습니다."
+ */
+
 //카테고리 목록
 router.get('/kategorie', async (req, res) => {
     try {
