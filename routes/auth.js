@@ -40,9 +40,9 @@ router.get(
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
             // );
-            res.redirect(
-                `http://localhost:3000/auth/kakao/callback/${query}`
-            );
+            // res.redirect(
+            //     `http://localhost:3000/auth/kakao/callback/${query}`
+            // );
         } catch (error) {
             const response = new ApiResponse(
                 500,
