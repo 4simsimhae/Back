@@ -124,8 +124,7 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
 router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     try {
         const { kategorieId } = req.params;
-        //const newroomName = res.locals.random; //openAPI로 이름받기
-        //console.log('랜덤 아이디 = ', newroomName);
+        const newroomName = res.locals.random; //openAPI로 이름받기
 
         const { kategorieName } = await Kategorie.findOne({
             attributes: ['kategorieName'],
@@ -138,10 +137,10 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
                 403,
                 '해당 카테고리를 찾을 수 없습니다.'
             );
-            return res.status(403).json(response);
+            return res(response);
         }
 
-        const roomName = '고민중인 진구';
+        const roomName = newroomName;
         const debater = 0;
         const panel = 0;
 
@@ -155,7 +154,7 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
 
         const roomlist = await Room.findAll({
             attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
-            where: { kategorieId, roomName},
+            where: { kategorieId, roomName },
         });
 
         const response = new ApiResponse(200, '', roomlist);
