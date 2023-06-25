@@ -39,7 +39,10 @@ module.exports = async (req, res, next) => {
         res.locals.random = name;
         next();
     } catch (error) {
-        return res.json({ errorMessage: '' });
+        console.log(error);
+        return;
+
+        // return res.json({ errorMessage: '' });
         // return res
         //     .status(500)
         //     .json({ errorMessage: '' });
