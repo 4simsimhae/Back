@@ -34,7 +34,7 @@ module.exports = (io) => {
         });
 
         // 배심원으로 참가하기
-        socket.on('joinJuror', async (userId) => {
+        socket.on('joinJuror', async (userId,done) => {
             try {
                 // userId 조회
                 const user = await UserInfo.findOne({
@@ -52,6 +52,8 @@ module.exports = (io) => {
                 // 닉네임 수정 및 DB에 저장
                 user.nickname = nickname;
                 await user.save();
+
+                done();
 
                 socket.emit('jurorJoined', { userId, nickname });
             } catch (error) {
