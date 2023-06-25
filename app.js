@@ -8,12 +8,7 @@ const http = require("http");
 const server = http.createServer(app);
 
 const socketHandlers = require("./socket");
-const io = require("socket.io")(server,{
-    cors: {
-    origin: ['https://simsimhae.store', 'http://localhost:3000'],
-    credentials: true,
-},
-})
+
 
 socketHandlers(io);
 
@@ -45,6 +40,13 @@ app.use(
         credentials: true,
     })
 );
+
+const io = require("socket.io")(server,{
+    cors: {
+    origin: ['https://simsimhae.store', 'http://localhost:3000'],
+    credentials: true,
+},
+})
 
 app.use(
     session({
@@ -102,6 +104,6 @@ app.get('/', (req, res) => {
     res.status(200).send('simsimhae API / Use "/docs-api" Page');
 });
 
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log('3000 포트로 서버 연결');
 }); //
