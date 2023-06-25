@@ -45,7 +45,7 @@ module.exports = (io) => {
                 // const nickName = socket.nickName;
                 user.debater = 1; // 토론자로 설정
                 user.roomId = room.roomId;
-                user.nickName = nickName;
+                // user.nickName = nickName;
 
                 await user.save();
 
@@ -95,7 +95,7 @@ module.exports = (io) => {
                 // const nickName = socket.nickName;
                 user.debater = 0; // 배심원으로 설정
                 user.roomId = room.roomId;
-                user.nickName = nickName;
+                // user.nickName = nickName;
 
                 await user.save();
 
