@@ -1,6 +1,11 @@
 const { UserInfo } = require('../models');
 
-module.exports = (socket) => {
+module.exports = (io) => {
+    io.on('connection', (socket) => {
+        socket.onAny((event) => {
+            console.log(`Socket Event: ${event}`);
+        });
+    });
     socket.on('like', async (userId) => {
         try {
             // userId 조회
@@ -43,11 +48,11 @@ module.exports = (socket) => {
                 return;
             }
 
-            // 좋아요 수 증가
+            // 싫어요 수 증가
             debater.hate += 1;
             await debater.save();
 
-            // 변경된 좋아요 정보를 클라이언트에게 전달
+            // 변경된 싫어요 정보를 클라이언트에게 전달
             socket.emit('hateUpdate', { userId, hate: debater.hate });
         } catch (error) {
             console.error('싫어요 처리 실패:', error);
@@ -70,11 +75,11 @@ module.exports = (socket) => {
                 return;
             }
 
-            // 좋아요 수 증가
+            // 물음표 수 증가
             debater.questionMark += 1;
             await debater.save();
 
-            // 변경된 좋아요 정보를 클라이언트에게 전달
+            // 변경된 물음표 정보를 클라이언트에게 전달
             socket.emit('questionMarkUpdate', {
                 userId,
                 questionMark: debater.questionMark,
@@ -97,7 +102,7 @@ module.exports = (socket) => {
                 return;
             }
 
-            // debater 값 '0'으로 초기화
+            // debater 값을 '0'으로 초기화
             debater.debater = 0;
 
             // 좋아요, 싫어요, 물음표 초기화

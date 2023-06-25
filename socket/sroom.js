@@ -1,78 +1,113 @@
-const { UserInfo, Kategorie, Room, Subject, Chat } = require('../models');
+const { UserInfo, Room } = require('../models');
+const randomNameMiddleware = require('../middlewares/randomName');
+const checkLoginMiddleware = require('../middlewares/checkLogin');
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
-        console.log(socket);
-    });
+        socket.onAny((event) => {
+            console.log(`Socket Event: ${event}`);
+        });
+        // 토론자로 참여하기
+        socket.on(
+            'joinDebate',
+            randomNameMiddleware,
+            checkLoginMiddleware,
+            async (userId, roomId, done) => {
+                try {
+                    // userId 조회
+                    const user = await UserInfo.findOne({
+                        where: { userId },
+                    });
+                    console.log('1 userId = ', userId);
 
-    // 토론자로 참여하기
-    socket.on('joinDebate', async (userId) => {
-        try {
-            // userId 조회
-            const user = await UserInfo.findOne({
-                where: { userId },
-            });
+                    if (!user) {
+                        socket.emit('error', '유저를 찾을 수 없습니다.');
+                        return;
+                    }
 
-            if (!user) {
-                socket.emit('error', '유저를 찾을 수 없습니다.');
-                return;
+                    // roomId로 선택한방 조회
+                    const room = await Room.findOne({
+                        where: { roomId },
+                    });
+                    console.log('2 roomId =', room.roomId);
+
+                    if (!room) {
+                        socket.emit('error', '입장할 수 있는 방이 없습니다.');
+                        return;
+                    }
+
+                    // room에 입장
+                    socket.join(room.roomId);
+                    socket.roomId = room.roomId;
+                    console.log('3 roomId =', room.roomId);
+
+                    // debater,roomId,nickName 수정 및 DB에 저장
+                    const nickName = socket.nickName;
+                    user.debater = 0;
+                    user.roomId = room.roomId;
+                    user.nickName = nickName;
+
+                    await user.save();
+
+                    done();
+
+                    socket.emit('debateJoined', { userId, nickName });
+                } catch (error) {
+                    console.error('토론 참여 처리 실패:', error);
+                    socket.emit('error', '토론 참여 처리에 실패했습니다.');
+                }
             }
+        );
 
-            // debater 수정 및 DB에 저장
-            user.debater = 1;
-            await user.save();
+        // 배심원으로 참가하기
+        socket.on(
+            'joinJuror',
+            randomNameMiddleware,
+            async (userId, roomId, done) => {
+                try {
+                    // userId 조회
+                    const user = await UserInfo.findOne({
+                        where: { userId },
+                    });
+                    console.log('1 userId = ', userId);
 
-            // 클라이언트에게 정보 전달
-            socket.emit('debateJoined', {
-                userId,
-                roomId: socket.roomId,
-                debater,
-                nickname,
-            });
-        } catch (error) {
-            console.error('토론 참여 처리 실패:', error);
-            socket.emit('error', '토론 참여 처리에 실패했습니다.');
-        }
-    });
+                    if (!user) {
+                        socket.emit('error', '유저를 찾을 수 없습니다.');
+                        return;
+                    }
 
-    // 배심원으로 참가하기
-    socket.on('joinJuror', async (userId) => {
-        try {
-            // userId 조회
-            const user = await UserInfo.findOne({
-                where: { userId },
-            });
+                    // roomId로 선택한방 조회
+                    const room = await Room.findOne({
+                        where: { roomId },
+                    });
+                    console.log('2 roomId =', room.roomId);
 
-            if (!user) {
-                socket.emit('error', '유저를 찾을 수 없습니다.');
-                return;
+                    if (!room) {
+                        socket.emit('error', '입장할 수 있는 방이 없습니다.');
+                        return;
+                    }
+
+                    // room에 입장
+                    socket.join(room.roomId);
+                    socket.roomId = room.roomId;
+                    console.log('3 roomId =', room.roomId);
+
+                    // debater,roomId,nickName 수정 및 DB에 저장
+                    const nickName = socket.nickName;
+                    user.debater = 0;
+                    user.roomId = room.roomId;
+                    user.nickName = nickName;
+
+                    await user.save();
+
+                    done();
+
+                    socket.emit('jurorJoined', { userId, nickName });
+                } catch (error) {
+                    console.error('배심원 참여 처리 실패:', error);
+                    socket.emit('error', '배심원 참여 처리에 실패했습니다.');
+                }
             }
-
-            // 랜덤 닉네임 가져오기
-            const nickname = await getRandomNickname();
-
-            // 닉네임 수정 및 DB에 저장
-            user.nickname = nickname;
-            await user.save();
-
-            socket.emit('jurorJoined', { userId, nickname });
-        } catch (error) {
-            console.error('배심원 참여 처리 실패:', error);
-            socket.emit('error', '배심원 참여 처리에 실패했습니다.');
-        }
+        );
     });
 };
-
-// 랜덤 닉네임 가져오기
-async function getRandomNickname() {
-    try {
-        const response = await axios.get(
-            'https://nickname.hwanmoo.kr/?format=json&count=1'
-        );
-        const nickname = response.data.words[0];
-        return nickname;
-    } catch (error) {
-        console.error('랜덤 닉네임 가져오기 실패:', error);
-        throw error;
-    }
-}
