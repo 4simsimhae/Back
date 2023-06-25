@@ -297,6 +297,7 @@ router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
         }
 
         //만약 로그인 유저가 아니라면 오류!
+        console.log('토큰안에 정보가 담겨있냐 = ',userId);
         if (!userId) {
             const response = new ApiResponse(
                 403,
