@@ -6,13 +6,8 @@ const app = express();
 const passport = require('passport');
 const http = require('http');
 const server = http.createServer(app);
+
 const socketHandlers = require('./socket');
-const io = require('socket.io')(server, {
-    cors: {
-        origin: ['https://simsimhae.store', 'http://localhost:3000'],
-        credentials: true,
-    },
-});
 
 socketHandlers(io);
 
@@ -44,6 +39,13 @@ app.use(
         credentials: true,
     })
 );
+
+const io = require('socket.io')(server, {
+    cors: {
+        origin: ['https://simsimhae.store', 'http://localhost:3000'],
+        credentials: true,
+    },
+});
 
 app.use(
     session({

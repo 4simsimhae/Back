@@ -1,6 +1,10 @@
 const { UserInfo, Kategorie, Room, Subject, Chat } = require('../models');
 
-module.exports = (socket) => {
+module.exports = (io) => {
+    io.on('connection', (socket) => {
+        console.log(socket);
+    });
+
     // 토론자로 참여하기
     socket.on('joinDebate', async (userId) => {
         try {

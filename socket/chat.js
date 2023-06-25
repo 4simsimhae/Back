@@ -1,5 +1,3 @@
-const { io } = require('socket.io');
-
 module.exports = (io) => {
     io.on('connection', (socket) => {
         // 랜덤 닉네임을 생성하여 소켓에 할당합니다.
