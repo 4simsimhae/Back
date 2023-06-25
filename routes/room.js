@@ -21,11 +21,11 @@ class ApiResponse {
  *          summary: "카테고리 목록"
  *          requestBody:
  *              content:
- * 
+ *
  *          responses:
  *              "200":
  *                  description: ""
- * 
+ *
  *              "500":
  *                  description: "예상하지 못한 서버 문제가 발생했습니다."
  */
@@ -125,11 +125,12 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     try {
         const { kategorieId } = req.params;
         const newroomName = res.locals.random; //openAPI로 이름받기
-
         const { kategorieName } = await Kategorie.findOne({
             attributes: ['kategorieName'],
             where: { kategorieId },
         });
+        console.log('1 kategorieId =', kategorieId);
+        console.log('2 newroomName =', newroomName);
 
         //잘못된 kategorieId
         if (kategorieId > 8 || kategorieId < 1) {
@@ -152,10 +153,17 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             panel,
         });
 
+        console.log('3 createdRoom =', createdRoom);
         const roomId = createdRoom.roomId;
 
         const roomlist = await Room.findAll({
-            attributes: [ 'roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+            attributes: [
+                'roomId',
+                'KategorieName',
+                'roomName',
+                'debater',
+                'panel',
+            ],
             where: { roomId },
         });
 
@@ -212,17 +220,15 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
         if (!userId) {
             //만약 로그인 유저가 아니라면! 정보만들기
             const nologinuserId = 0;
-            await UserInfo.create(
-                {
-                    userId : nologinuserId,
-                    roomId,
-                    nickName,
-                    like,
-                    hate,
-                    questionMark,
-                    debater
-                }
-            );
+            await UserInfo.create({
+                userId: nologinuserId,
+                roomId,
+                nickName,
+                like,
+                hate,
+                questionMark,
+                debater,
+            });
         } else {
             //로그인 유저라면 정보 수정하기!
             await UserInfo.update(

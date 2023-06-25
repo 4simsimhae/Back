@@ -24,6 +24,9 @@ module.exports = (sequelize, DataTypes) => {
                 primaryKey: true,
                 type: DataTypes.INTEGER,
             },
+            userId: {
+                type: Sequelize.INTEGER,
+            },
             roomId: {
                 type: DataTypes.INTEGER,
             },
