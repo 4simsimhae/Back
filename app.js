@@ -41,12 +41,13 @@ app.use(
     })
 );
 
-const io = require("socket.io")(server,{
-    cors: {
-    origin: ['https://simsimhae.store', 'http://localhost:3000'],
-    credentials: true,
-},
-})
+const io = require("socket.io")(server)
+// {
+//     cors: {
+//     origin: ['https://simsimhae.store', 'http://localhost:3000'],
+//     credentials: true,
+// },
+// })
 
 app.use(
     session({
