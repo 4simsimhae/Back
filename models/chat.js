@@ -8,6 +8,11 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
+            // Chat 모델과 Room 모델의 관계 설정
+            Chat.belongsTo(models.Room, { foreignKey: 'roomId' });
+
+            // Chat 모델과 UserInfo 모델의 관계 설정
+            Chat.belongsTo(models.UserInfo, { foreignKey: 'userId' });
             // define association here
         }
     }
