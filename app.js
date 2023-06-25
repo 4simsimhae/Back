@@ -4,10 +4,15 @@ const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
 const app = express();
 const passport = require('passport');
-const http = require("http");
+const http = require('http');
 const server = http.createServer(app);
-const io = require("socket.io")(server);
-const socketHandlers = require("./socket");
+const socketHandlers = require('./socket');
+const io = require('socket.io')(server, {
+    cors: {
+        origin: ['https://simsimhae.store', 'http://localhost:3000'],
+        credentials: true,
+    },
+});
 
 socketHandlers(io);
 
@@ -85,8 +90,6 @@ passport.deserializeUser((token, done) => {
 });
 
 kakao(); // kakaoStrategy.js의 module.exports를 실행합니다.
-
-
 
 app.use('/', authRouter);
 app.use('/api', [indexRouter]);
