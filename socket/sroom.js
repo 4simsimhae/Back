@@ -11,7 +11,6 @@ module.exports = (io) => {
         // 토론자로 참여하기
         socket.on(
             'joinDebate',
-            randomNameMiddleware,
             checkLoginMiddleware,
             async (userId, roomId, done) => {
                 try {
@@ -46,7 +45,7 @@ module.exports = (io) => {
                     console.log('3 roomId =', room.roomId);
 
                     // debater, roomId, nickName 수정 및 DB에 저장
-                    const nickName = socket.nickName;
+                    // const nickName = socket.nickName;
                     user.debater = 1; // 토론자로 설정
                     user.roomId = room.roomId;
                     user.nickName = nickName;
@@ -100,7 +99,7 @@ module.exports = (io) => {
                     console.log('3 roomId =', room.roomId);
 
                     // debater, roomId, nickName 수정 및 DB에 저장
-                    const nickName = socket.nickName;
+                    // const nickName = socket.nickName;
                     user.debater = 0; // 배심원으로 설정
                     user.roomId = room.roomId;
                     user.nickName = nickName;
