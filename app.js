@@ -31,6 +31,16 @@ app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDocs)); //스웨거
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
+
+const io = require("socket.io")(server)
+// {
+//     cors: {
+//     origin: ['https://simsimhae.store', 'http://localhost:3000'],
+//     credentials: true,
+// },
+// })
+
 //CORS 설정
 const cors = require('cors');
 app.use(
@@ -40,14 +50,6 @@ app.use(
         credentials: true,
     })
 );
-
-const io = require("socket.io")(server)
-// {
-//     cors: {
-//     origin: ['https://simsimhae.store', 'http://localhost:3000'],
-//     credentials: true,
-// },
-// })
 
 app.use(
     session({
