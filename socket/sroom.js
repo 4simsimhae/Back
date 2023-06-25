@@ -51,7 +51,7 @@ module.exports = (io) => {
 
                 done();
 
-                socket.emit('debateJoined', { userId, nickName });
+                socket.emit('debateJoined', { userId });
             } catch (error) {
                 console.error('토론 참여 처리 실패:', error);
                 socket.emit('error', '토론 참여 처리에 실패했습니다.');
@@ -101,7 +101,7 @@ module.exports = (io) => {
 
                 done();
 
-                socket.emit('jurorJoined', { userId, nickName });
+                socket.emit('jurorJoined', { userId });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
                 socket.emit('error', '배심원 참여 처리에 실패했습니다.');
