@@ -54,15 +54,15 @@ module.exports = (io) => {
 
                 if (chat) {
                     // 이미 존재하는 채팅 내용이라면 데이터를 업데이트합니다.
-                    const chatData = JSON.parse(chat.chatList) || {};
-                    chatData[nickName] = msg;
+                    let chatData = JSON.parse(chat.chatList) || [];
+                    chatData.push({ [nickName]: msg });
                     chat.chatList = JSON.stringify(chatData);
                     await chat.save();
                 } else {
                     // 새로운 채팅 내용을 생성합니다.
                     await Chat.create({
                         roomId,
-                        chatList: JSON.stringify({ [nickName]: msg }),
+                        chatList: JSON.stringify([{ [nickName]: msg }]),
                     });
                 }
             } catch (error) {
