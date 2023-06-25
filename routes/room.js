@@ -129,8 +129,6 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             attributes: ['kategorieName'],
             where: { kategorieId },
         });
-        console.log('1 kategorieId =', kategorieId);
-        console.log('2 newroomName =', newroomName);
 
         //잘못된 kategorieId
         if (kategorieId > 8 || kategorieId < 1) {
@@ -152,8 +150,6 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             debater,
             panel,
         });
-
-        console.log('3 createdRoom =', createdRoom);
         const roomId = createdRoom.roomId;
 
         const roomlist = await Room.findAll({

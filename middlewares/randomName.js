@@ -37,14 +37,9 @@ module.exports = async (req, res, next) => {
         console.log('name = ', name);
         console.log('-------------');
         res.locals.random = name;
+        console.log('44 =', locals.random);
         next();
     } catch (error) {
-        console.log(error);
-        return;
-
-        // return res.json({ errorMessage: '' });
-        // return res
-        //     .status(500)
-        //     .json({ errorMessage: '' });
+        return res.status(500).json({ errorMessage: '' });
     }
 };

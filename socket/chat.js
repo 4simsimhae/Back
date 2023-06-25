@@ -43,6 +43,7 @@ module.exports = (io) => {
         socket.on('new_message', async (msg, roomId, done) => {
             try {
                 const nickName = '토론자';
+                console.log('1 msg =', msg);
 
                 // 해당 토론방에 새로운 메시지를 전송합니다.
                 socket.to(roomId).emit('new_chat', `토론자: ${msg}`);
