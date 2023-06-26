@@ -29,6 +29,7 @@ module.exports = () => {
                             },
                             process.env.JWT_SECRET
                         );
+                        console.log("토큰이 잘보이나요?11 ",token);
                         return done(null, token);
                     } else {
                         // 새로운 사용자일 경우
@@ -55,7 +56,7 @@ module.exports = () => {
                                 expiresIn: '1d',
                             }
                         );
-                        console.log(token);
+                        console.log("토큰이 잘보이나요? ",token);
                         return done(null, token);
                     }
                 } catch (error) {

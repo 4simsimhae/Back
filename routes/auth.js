@@ -28,13 +28,8 @@ router.get(
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
             const query = '?token=' + token;
             res.locals.token = token;
+            console.log("이건 쿼리에 담긴 토큰 = ",token)
 
-<<<<<<< HEAD
-        res.redirect(
-            `http://localhost:3000/auth/kakao/callback/${query}`,
-        );
-        } catch (error){
-=======
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
             // );
@@ -42,7 +37,6 @@ router.get(
                 `http://localhost:3000/auth/kakao/callback/${query}`
             );
         } catch (error) {
->>>>>>> 552cb9582f2d5148905d75cf58a66ce09e76e06e
             const response = new ApiResponse(
                 500,
                 '예상하지 못한 서버 문제가 발생했습니다.'
@@ -58,16 +52,12 @@ router.get('/auth/logout', (req, res) => {
             console.error(err);
             return res.redirect('/'); // 로그아웃 중 에러가 발생한 경우에 대한 처리
         }
-<<<<<<< HEAD
-        res.redirect('http://localhost:3000/'); // 로그아웃 성공 시 리다이렉트
-=======
         // res.redirect(
         //     'https://front-black-delta.vercel.app/'
         // ); // 로그아웃 성공 시 리다이렉트
         res.redirect(
             'http://localhost:3000/'
         );
->>>>>>> 552cb9582f2d5148905d75cf58a66ce09e76e06e
     });
 });
 module.exports = router;

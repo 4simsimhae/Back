@@ -175,10 +175,11 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
 });
 
 //구경꾼으로 참여하기
-router.put('/panel/:roomId', checkLogin, async (req, res) => {
+router.put('/panel/:roomId', checkLogin, randomName, async (req, res) => {
     try {
         const { roomId } = req.params;
         const { userId } = res.locals.user;
+        const randomName = res.locals.random; //openAPI로 이름받기
 
         //잘못된 roomId
         const existroomId = await Room.findOne({
@@ -207,7 +208,12 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
         // }
 
         //userInfo 수정
-        const nickName = '구경꾼'; //오픈API로 받기
+        const splitname = randomName.split(' ');
+        console.log(splitname);
+        console.log('data = ',splitname.length);
+        const newRandomName = randomName[splitname.length];
+        console.log(newRandomName);
+        const nickName = newRandomName; //오픈API로 받기
         const like = 0;
         const hate = 0;
         const questionMark = 0;
@@ -268,10 +274,11 @@ router.put('/panel/:roomId', checkLogin, async (req, res) => {
 });
 
 //토론자로 참여하기
-router.put('/discussant/:roomId', checkLogin, async (req, res) => {
+router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
     try {
         const { roomId } = req.params;
         const { userId } = res.locals.user;
+        const randomName = res.locals.random; //openAPI로 이름받기
 
         const roomlist = await Room.findAll({
             attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
@@ -292,6 +299,7 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         }
 
         //만약 로그인 유저가 아니라면 오류!
+        console.log('토큰안에 정보가 담겨있냐 = ',userId);
         if (!userId) {
             const response = new ApiResponse(
                 403,
@@ -301,7 +309,10 @@ router.put('/discussant/:roomId', checkLogin, async (req, res) => {
         }
 
         //userInfo 수정
-        const nickName = '아가리 파이터'; //오픈API로 받기
+
+        const splitname = randomName.split(' ');
+        const newRandomName = randomName[splitname.length];
+        const nickName = newRandomName; //오픈API로 받기
         const like = 0;
         const hate = 0;
         const questionMark = 0;
