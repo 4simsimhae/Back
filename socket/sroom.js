@@ -9,8 +9,7 @@ module.exports = (io) => {
         });
 
         // 토론자로 참여하기
-        socket.on('joinDebate',socketCheckLogin,
-        socketRandomName, async (userId, roomId, done) => {
+        socket.on('joinDebate', async (userId, roomId, done) => {
             try {
                 // userId 조회
                 const user = await UserInfo.findOne({
@@ -60,7 +59,7 @@ module.exports = (io) => {
         });
 
         // 배심원으로 참가하기
-        socket.on('joinJuror',socketRandomName, async (userId, roomId, done) => {
+        socket.on('joinJuror', async (userId, roomId, done) => {
             try {
                 // userId 조회
                 const user = await UserInfo.findOne({

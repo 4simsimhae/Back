@@ -180,19 +180,6 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
         const { userId } = res.locals.user;
         const randomName = res.locals.random; //openAPI로 이름받기
 
-        //잘못된 roomId
-        const existroomId = await Room.findOne({
-            attributes: ['roomName'],
-            where: { roomId },
-        });
-        if (!existroomId) {
-            const response = new ApiResponse(
-                403,
-                '존재하지 않는 게임방입니다.'
-            );
-            return res.status(403).json(response);
-        }
-
         //userInfo 수정
         // const splitname = randomName.split(' ');
         // console.log(splitname);
