@@ -19,18 +19,22 @@ module.exports = async (req, res, next) => {
             res.locals.user = [];
         } else {
             console.log('읽어지나?');
+
             const [authType, authToken] = Authorization.split(' ');
             console.log(Authorization, authType, authToken);
+            console.log('-----------');
 
             // authType === Bearer인지 확인
             if (authType !== 'Bearer' || !authToken) {
+                console.log('토큰 Bearer 타입 아님');
                 res.locals.user = [];
             } else {
                 const { userId } = jwt.verify(
-                    authToken,
+                    userId,
                     process.env.JWT_SECRET
                 );
                 const user = await User.findOne({ where: { userId } });
+                console.log('유저정보담아서보냄');
 
                 res.locals.user = user;
             }

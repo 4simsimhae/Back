@@ -47,6 +47,7 @@ module.exports = (io) => {
 
                 // 해당 토론방에 새로운 메시지를 전송합니다.
                 socket.to(roomId).emit('new_chat', `${nickName}: ${msg}`);
+
                 done(); // 클라이언트에게 완료를 알립니다.
 
                 // 채팅 내용을 데이터베이스에 저장합니다.

@@ -1,21 +1,3 @@
-// //랜덤 아이디 불러오기
-// var Crawler = require('crawler')
-
-// var c = new Crawler({
-//     maxConnections: 10,
-//     callback: function (error, res, done) {
-//         if (error) {
-//             console.log(error);
-//         } else {
-//             var $ = res.$;
-//             console.log($('title').text());
-//             const randomName = $('h1').text();
-//             done();
-//         }
-//     },
-// });
-// c.queue('https://nickname.hwanmoo.kr/');
-
 const axios = require('axios');
 const cheerio = require('cheerio');
 
@@ -61,6 +43,6 @@ module.exports.socketRandomName = async (socket, next) => {
         next();
     } catch (error) {
         console.error('닉네임 부여 실패:', error);
-        socket.emit('error', '닉네임 부여에 실패했습니다.');
+        socket.request.emit('error', '닉네임 부여에 실패했습니다.');
     }
 };
