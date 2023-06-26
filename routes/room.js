@@ -248,88 +248,88 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
     }
 });
 
-// //토론자로 참여하기
-// router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
-//     try {
-//         const { roomId } = req.params;
-//         const { userId } = res.locals.user;
-//         const randomName = res.locals.random; //openAPI로 이름받기
+//토론자로 참여하기
+router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
+    try {
+        const { roomId } = req.params;
+        const { userId } = res.locals.user;
+        const randomName = res.locals.random; //openAPI로 이름받기
 
-//         const roomlist = await Room.findAll({
-//             attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
-//             where: { roomId },
-//         });
+        const roomlist = await Room.findAll({
+            attributes: ['KategorieName', 'roomName', 'debater', 'panel'],
+            where: { roomId },
+        });
 
-//         //잘못된 roomId
-//         const existroomId = await Room.findOne({
-//             attributes: ['roomName'],
-//             where: { roomId },
-//         });
-//         if (!existroomId) {
-//             const response = new ApiResponse(
-//                 403,
-//                 '존재하지 않는 게임방입니다.'
-//             );
-//             return res.status(403).json(response);
-//         }
+        //잘못된 roomId
+        const existroomId = await Room.findOne({
+            attributes: ['roomName'],
+            where: { roomId },
+        });
+        if (!existroomId) {
+            const response = new ApiResponse(
+                403,
+                '존재하지 않는 게임방입니다.'
+            );
+            return res.status(403).json(response);
+        }
 
-//         //만약 로그인 유저가 아니라면 오류!
-//         console.log('토큰안에 정보가 담겨있냐 = ',userId);
-//         if (!userId) {
-//             const response = new ApiResponse(
-//                 403,
-//                 '로그인이 필요한 서비스입니다.'
-//             );
-//             return res.status(403).json(response);
-//         }
+        //만약 로그인 유저가 아니라면 오류!
+        console.log('토큰안에 어떤정보가 담겨있냐 = ',userId);
+        if (!userId) {
+            const response = new ApiResponse(
+                403,
+                '로그인이 필요한 서비스입니다.'
+            );
+            return res.status(403).json(response);
+        }
 
-//         //userInfo 수정
+        //userInfo 수정
 
-//         const splitname = randomName.split(' ');
-//         const newRandomName = randomName[splitname.length];
-//         const nickName = newRandomName; //오픈API로 받기
-//         const like = 0;
-//         const hate = 0;
-//         const questionMark = 0;
-//         const debater = 1;
-//         await UserInfo.update(
-//             {
-//                 nickName,
-//                 roomId,
-//                 like,
-//                 hate,
-//                 questionMark,
-//                 debater,
-//                 updatedAt: new Date(),
-//             },
-//             {
-//                 where: { userId },
-//             }
-//         );
+        const splitname = randomName.split(' ');
+        const newRandomName = randomName[splitname.length];
+        const nickName = newRandomName; //오픈API로 받기
+        const like = 0;
+        const hate = 0;
+        const questionMark = 0;
+        const debater = 1;
+        await UserInfo.update(
+            {
+                nickName,
+                roomId,
+                like,
+                hate,
+                questionMark,
+                debater,
+                updatedAt: new Date(),
+            },
+            {
+                where: { userId },
+            }
+        );
 
-//         // //방 토론자 수 증가
-//         // const { debaterNumber } = await Room.findOne({
-//         //     attributes: ['debater'],
-//         //     where: { roomId },
-//         // });
-//         // await Room.update(
-//         //     { debater: debaterNumber.debater + 1 },
-//         //     {
-//         //         where: { roomId },
-//         //     }
-//         // );
+        // //방 토론자 수 증가
+        // const { debaterNumber } = await Room.findOne({
+        //     attributes: ['debater'],
+        //     where: { roomId },
+        // });
+        // await Room.update(
+        //     { debater: debaterNumber.debater + 1 },
+        //     {
+        //         where: { roomId },
+        //     }
+        // );
 
-//         //결과
-//         const response = new ApiResponse(200, '', []);
-//         return res.status(200).json(response);
-//     } catch (error) {
-//         const response = new ApiResponse(
-//             500,
-//             '예상하지 못한 서버 문제가 발생했습니다.'
-//         );
-//         return res.status(500).json(response);
-//     }
-// });
+        //결과
+        const response = new ApiResponse(200, '', []);
+        return res.status(200).json(response);
+    } catch (error) {
+        const response = new ApiResponse(
+            500,
+            '예상하지 못한 서버 문제가 발생했습니다.'
+        );
+        return res.status(500).json(response);
+    }
+});
 
 //방 삭제하기
 router.delete('/roomlist/:roomId', async (req, res) => {

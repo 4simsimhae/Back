@@ -1,6 +1,6 @@
 const { UserInfo, Room, Chat } = require('../models');
-const { socketRandomName } = require('../middlewares/randomName');
-const { socketCheckLogin } = require('../middlewares/checkLogin');
+// const { socketRandomName } = require('../middlewares/randomName');
+// const { socketCheckLogin } = require('../middlewares/checkLogin');
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
