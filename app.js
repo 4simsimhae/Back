@@ -24,11 +24,7 @@ app.use(cookieParser());
 const cors = require('cors');
 app.use(
     cors({
-<<<<<<< HEAD
-        origin: ['https://simsimhae.store', 'http://localhost:3000/'],
-=======
         origin: ['https://simsimhae.store', 'http://localhost:3000'],
->>>>>>> 552cb9582f2d5148905d75cf58a66ce09e76e06e
         credentials: true,
     })
 );
@@ -48,17 +44,10 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-<<<<<<< HEAD
-            domain: 'http://localhost:3000/', // .ysizuku.com으로 설정하면 모든 서브도메인에서 쿠키를 사용할 수 있습니다.
-            path: '/', // /로 설정하면 모든 페이지에서 쿠키를 사용할 수 있습니다.
-            secure: false, // https가 아닌 환경에서도 사용할 수 있습니다.
-            httpOnly: false, // 자바스크립트에서 쿠키를 확인할 수 있습니다.
-=======
             domain: 'http://localhost:3000',
             path: '/',
             secure: false,
             httpOnly: false,
->>>>>>> 552cb9582f2d5148905d75cf58a66ce09e76e06e
         },
     })
 );
