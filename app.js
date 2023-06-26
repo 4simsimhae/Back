@@ -91,6 +91,6 @@ app.get('/', (req, res) => {
 
 socketHandlers(io);
 
-server.listen(3001, () => {
+server.listen(3000, () => {
     console.log('3000 포트로 서버 연결');
 });
