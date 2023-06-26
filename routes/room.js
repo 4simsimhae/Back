@@ -174,50 +174,22 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
     }
 });
 
-//구경꾼으로 참여하기
-router.put('/panel/:roomId', checkLogin, randomName, async (req, res) => {
+//입장하기 버튼으로 랜덤닉네임 생성하기
+router.put('/user', checkLogin, randomName, async (req, res) => {
     try {
-        const { roomId } = req.params;
         const { userId } = res.locals.user;
         const randomName = res.locals.random; //openAPI로 이름받기
 
-        //잘못된 roomId
-        const existroomId = await Room.findOne({
-            attributes: ['roomName'],
-            where: { roomId },
-        });
-        if (!existroomId) {
-            const response = new ApiResponse(
-                403,
-                '존재하지 않는 게임방입니다.'
-            );
-            return res.status(403).json(response);
-        }
-
-        // //토론자가 꽉찬 경우
-        // const fullpanel = await Room.findOne({
-        //     attributes: ['panel'],
-        //     where: { roomId },
-        // });
-        // if (fullpanel>=8){
-        //     const response = new ApiResponse(
-        //         403,
-        //         '인원수가 초과되었습니다.'
-        //     );
-        //     return res.status(403).json(response);
-        // }
-
         //userInfo 수정
         const splitname = randomName.split(' ');
-        console.log(splitname);
-        console.log('data = ',splitname.length);
-        const newRandomName = randomName[splitname.length];
+        const newRandomName = splitname[splitname.length-1];
         console.log(newRandomName);
         const nickName = newRandomName; //오픈API로 받기
         const like = 0;
         const hate = 0;
         const questionMark = 0;
         const debater = 0;
+        const roomId = 0;
 
         if (!userId) {
             //만약 로그인 유저가 아니라면! 정보만들기
@@ -248,18 +220,6 @@ router.put('/panel/:roomId', checkLogin, randomName, async (req, res) => {
                 }
             );
         }
-
-        // //방 구경꾼 수 증가
-        // const { panelNumber } = await Room.findOne({
-        //     attributes: ['panel'],
-        //     where: { roomId },
-        // });
-        // await Room.update(
-        //     { debater: panelNumber.panel + 1 },
-        //     {
-        //         where: { roomId },
-        //     }
-        // );
 
         //결과
         const response = new ApiResponse(200, '', []);
@@ -299,7 +259,7 @@ router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
         }
 
         //만약 로그인 유저가 아니라면 오류!
-        console.log('토큰안에 정보가 담겨있냐 = ',userId);
+        console.log('토큰안에 어떤정보가 담겨있냐 = ',userId);
         if (!userId) {
             const response = new ApiResponse(
                 403,
@@ -359,6 +319,12 @@ router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
 //방 삭제하기
 router.delete('/roomlist/:roomId', async (req, res) => {
     try {
+        const { roomId } = req.params;
+        await Room.destroy({
+            where: { roomId }
+        })
+        const response = new ApiResponse(200, '방이 삭제되었습니다', []);
+        return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
             500,
