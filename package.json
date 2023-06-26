@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" : "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +35,7 @@
     "passport-kakao": "^1.0.1",
     "sequelize": "^6.32.0",
     "session": "^0.1.0",
+    "socker.io": "^0.0.0-alpha-beta",
     "socket.io": "^4.7.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.3",

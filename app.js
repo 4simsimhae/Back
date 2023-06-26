@@ -6,6 +6,12 @@ const app = express();
 const passport = require('passport');
 const http = require('http');
 const server = http.createServer(app);
+//const server = require('http).Server(app)
+const { v4: uuidV4 } = require('uuid');
+
+//web RTC test
+app.set('view engine', 'ejs');
+//app.use(express.static('public'));
 
 //swagger
 const swaggerUi = require('swagger-ui-express');
