@@ -45,7 +45,7 @@ module.exports = async (req, res, next) => {
 // Socket.io에서 사용하는 미들웨어 함수
 module.exports.socketCheckLogin = async (socket, next) => {
     try {
-        const authorization = socket.handshake.headers['authorization'];
+        const authorization = socket.handshake.query.token;
         // 토큰이 있는지 확인
         if (!authorization) {
             socket.user = null;

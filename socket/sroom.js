@@ -1,6 +1,6 @@
 const { UserInfo, Room, Chat } = require('../models');
-const { socketCheckLogin } = require('../middlewares/randomName');
-const { socketCheckLogin } = require('../middlewares/checkLogin');
+const { socketRandomName } = require('../middlewares/randomName');
+// const { socketCheckLogin } = require('../middlewares/checkLogin');
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
@@ -11,10 +11,11 @@ module.exports = (io) => {
         // 토론자로 참여하기
         socket.on(
             'joinDebate',
-            socketCheckLogin,
             socketRandomName,
             async (userId, roomId, done) => {
                 try {
+                    // const token = data.token;
+                    // console.log('Received token:', token);
                     // userId 조회
                     const user = await UserInfo.findOne({
                         where: { userId },
@@ -46,10 +47,10 @@ module.exports = (io) => {
                     console.log('3 roomId =', room.roomId);
 
                     // debater, roomId, nickName 수정 및 DB에 저장
-                    // const nickName = socket.nickName;
+                    const nickName = socket.nickName;
                     user.debater = 1; // 토론자로 설정
                     user.roomId = room.roomId;
-                    // user.nickName = nickName;
+                    user.nickName = nickName;
 
                     await user.save();
 
@@ -175,3 +176,7 @@ module.exports = (io) => {
         });
     });
 };
+
+// query: {
+//     token: localStorage.getItem("authorization"),
+// }

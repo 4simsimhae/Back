@@ -43,15 +43,20 @@ module.exports = async (req, res, next) => {
     }
 };
 
+// 소켓 미들웨어
 module.exports.socketRandomName = async (socket, next) => {
     try {
         const html = await axios.get(
             'https://nickname.hwanmoo.kr/?format=json&count=2'
         );
-        const name = html.data.words[0];
-        console.log('name = ', name);
+        const nickName = html.data.words[0];
+        console.log('nickName = ', nickName);
         console.log('-------------');
-        res.locals.random = name;
+        if (!socket.locals) {
+            socket.locals = {};
+        }
+        console.log('43 =', socket.locals.random);
+        socket.locals.random = nickName;
         console.log('44 =', socket.locals.random);
         next();
     } catch (error) {
