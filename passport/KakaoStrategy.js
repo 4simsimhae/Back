@@ -8,7 +8,7 @@ module.exports = () => {
         new KakaoStrategy(
             {
                 clientID: process.env.KAKAO_ID,
-                callbackURL: '/auth/kakao/callback',
+                callbackURL: '/auth/kakao/callback'
             },
             // passport-kakao 콜백 함수
             async (accessToken, refreshToken, profile, done) => {

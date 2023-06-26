@@ -6,14 +6,14 @@ module.exports = (io) => {
             console.log(`Socket Event: ${event}`);
         });
 
-        // "enter_room" 이벤트를 처리하여 토론방에 입장합니다.
-        socket.on('enter_room', (roomId, done) => {
-            // 해당 토론방에 소켓을 입장시킵니다.
-            socket.join(roomId);
-            done(); // 클라이언트에게 완료를 알립니다.
-            // 토론방에 입장한 사용자에게 환영 메시지를 전송합니다.
-            io.to(roomId).emit('welcome', socket.nickName);
-        });
+        // // "enter_room" 이벤트를 처리하여 토론방에 입장합니다.
+        // socket.on('enter_room', (roomId, done) => {
+        //     // 해당 토론방에 소켓을 입장시킵니다.
+        //     socket.join(roomId);
+        //     done(); // 클라이언트에게 완료를 알립니다.
+        //     // 토론방에 입장한 사용자에게 환영 메시지를 전송합니다.
+        //     io.to(roomId).emit('welcome', socket.nickName);
+        // });
 
         // 소켓이 연결 해제될 때 실행되는 "disconnecting" 이벤트를 처리합니다.
         socket.on('disconnecting', async () => {
@@ -42,10 +42,11 @@ module.exports = (io) => {
         // "new_message" 이벤트를 처리하여 새로운 메시지를 전송하고 데이터베이스에 저장합니다.
         socket.on('new_message', async (msg, roomId, done) => {
             try {
-                const nickName = socket.nickName;
+                const nickName = '토론자';
+                console.log('1 msg =', msg);
 
                 // 해당 토론방에 새로운 메시지를 전송합니다.
-                io.to(roomId).emit('new_message', `${nickName}: ${msg}`);
+                socket.to(roomId).emit('new_chat', `토론자: ${msg}`);
                 done(); // 클라이언트에게 완료를 알립니다.
 
                 // 채팅 내용을 데이터베이스에 저장합니다.
@@ -53,15 +54,15 @@ module.exports = (io) => {
 
                 if (chat) {
                     // 이미 존재하는 채팅 내용이라면 데이터를 업데이트합니다.
-                    const chatData = JSON.parse(chat.chatList) || {};
-                    chatData[nickName] = msg;
+                    let chatData = JSON.parse(chat.chatList) || [];
+                    chatData.push({ [nickName]: msg });
                     chat.chatList = JSON.stringify(chatData);
                     await chat.save();
                 } else {
                     // 새로운 채팅 내용을 생성합니다.
                     await Chat.create({
                         roomId,
-                        chatList: JSON.stringify({ [nickName]: msg }),
+                        chatList: JSON.stringify([{ [nickName]: msg }]),
                     });
                 }
             } catch (error) {
