@@ -18,6 +18,7 @@ module.exports = async (req, res, next) => {
         if (!Authorization) {
             res.locals.user = [];
         } else {
+            console.log('읽어지나?');
             const [authType, authToken] = Authorization.split(' ');
             console.log(Authorization, authType, authToken);
 
