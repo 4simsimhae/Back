@@ -1,5 +1,5 @@
 const { UserInfo, Room, Chat } = require('../models');
-const { socketCheckLogin } = require('../middlewares/randomName');
+const { socketRandomName } = require('../middlewares/randomName');
 const { socketCheckLogin } = require('../middlewares/checkLogin');
 
 module.exports = (io) => {

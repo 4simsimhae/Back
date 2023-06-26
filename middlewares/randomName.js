@@ -1,21 +1,3 @@
-// //랜덤 아이디 불러오기
-// var Crawler = require('crawler')
-
-// var c = new Crawler({
-//     maxConnections: 10,
-//     callback: function (error, res, done) {
-//         if (error) {
-//             console.log(error);
-//         } else {
-//             var $ = res.$;
-//             console.log($('title').text());
-//             const randomName = $('h1').text();
-//             done();
-//         }
-//     },
-// });
-// c.queue('https://nickname.hwanmoo.kr/');
-
 const axios = require('axios');
 const cheerio = require('cheerio');
 

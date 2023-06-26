@@ -47,6 +47,7 @@ module.exports = async (req, res, next) => {
 module.exports.socketCheckLogin = async (socket, next) => {
     try {
         const authorization = socket.handshake.headers['authorization'];
+        console.log('토큰이다!! = ',authorization);//토큰 형식 확인하기
         // 토큰이 있는지 확인
         if (!authorization) {
             socket.user = null;
