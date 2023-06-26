@@ -24,14 +24,14 @@ app.use(cookieParser());
 const cors = require('cors');
 app.use(
     cors({
-        origin: ['https://simsimhae.store', 'http://localhost:3000'],
+        origin: ['https://simsimhae.store', 'http://localhost:3000', 'https://front-black-delta.vercel.app'],
         credentials: true,
     })
 );
 
 const io = require('socket.io')(server, {
     cors: {
-        origin: ['https://simsimhae.store', 'http://localhost:3000'],
+        origin: ['https://simsimhae.store', 'http://localhost:3000', 'https://front-black-delta.vercel.app'],
         credentials: true,
     },
 });
