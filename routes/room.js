@@ -182,11 +182,9 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
 
         //userInfo 수정
         const splitname = randomName.split(' ');
-        console.log(splitname);
-        console.log('data = ',splitname.length);
-        const newRandomName = randomName[splitname.length];
+        const newRandomName = splitname[splitname.length-1];
         console.log(newRandomName);
-        const nickName = randomName; //오픈API로 받기
+        const nickName = newRandomName; //오픈API로 받기
         const like = 0;
         const hate = 0;
         const questionMark = 0;

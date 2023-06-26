@@ -34,6 +34,7 @@ module.exports.socketRandomName = async (socket, next) => {
         const nickName = html.data.words[0];
         console.log('nickName = ', nickName);
         console.log('-------------');
+        socket.locals = {};
         socket.locals.random = nickName;
         console.log('44 =', socket.locals.random);
         next();
