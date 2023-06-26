@@ -10,7 +10,9 @@ module.exports = (io) => {
 
         // 토론자로 참여하기
         socket.on(
-            'joinDebate', socketRandomName,async (userId, roomId, done) => {
+            'joinDebate',
+            socketRandomName,
+            async (userId, roomId, done) => {
                 try {
                     // const token = data.token;
                     // console.log('Received token:', token);
@@ -65,7 +67,9 @@ module.exports = (io) => {
 
         // 배심원으로 참가하기
         socket.on(
-            'joinJuror', socketRandomName,async (userId, roomId, done) => {
+            'joinJuror',
+            socketRandomName,
+            async (userId, roomId, done) => {
                 try {
                     // userId 조회
                     const user = await UserInfo.findOne({
