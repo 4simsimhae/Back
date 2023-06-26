@@ -1,6 +1,6 @@
 const { UserInfo, Room, Chat } = require('../models');
 const { socketRandomName } = require('../middlewares/randomName');
-const { socketCheckLogin } = require('../middlewares/checkLogin');
+// const { socketCheckLogin } = require('../middlewares/checkLogin');
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
@@ -10,13 +10,10 @@ module.exports = (io) => {
 
         // 토론자로 참여하기
         socket.on(
-            'joinDebate',
-            socketCheckLogin,
-            socketRandomName,
-            async (data, userId, roomId, done) => {
+            'joinDebate', socketRandomName,async (userId, roomId, done) => {
                 try {
-                    const token = data.token;
-                    console.log('Received token:', token);
+                    // const token = data.token;
+                    // console.log('Received token:', token);
                     // userId 조회
                     const user = await UserInfo.findOne({
                         where: { userId },
@@ -49,6 +46,7 @@ module.exports = (io) => {
 
                     // debater, roomId, nickName 수정 및 DB에 저장
                     const nickName = socket.nickName;
+                    console.log("이거 적용되냐?",nickName)
                     user.debater = 1; // 토론자로 설정
                     user.roomId = room.roomId;
                     user.nickName = nickName;
@@ -67,9 +65,7 @@ module.exports = (io) => {
 
         // 배심원으로 참가하기
         socket.on(
-            'joinJuror',
-            socketRandomName,
-            async (userId, roomId, done) => {
+            'joinJuror', socketRandomName,async (userId, roomId, done) => {
                 try {
                     // userId 조회
                     const user = await UserInfo.findOne({
@@ -102,10 +98,11 @@ module.exports = (io) => {
                     console.log('3 roomId =', room.roomId);
 
                     // debater, roomId, nickName 수정 및 DB에 저장
-                    // const nickName = socket.nickName;
+                    const nickName = socket.nickName;
+                    console.log("이거 적용되냐?",nickName)
                     user.debater = 0; // 배심원으로 설정
                     user.roomId = room.roomId;
-                    // user.nickName = nickName;
+                    user.nickName = nickName;
 
                     await user.save();
 
