@@ -42,11 +42,11 @@ module.exports = (io) => {
         // "new_message" 이벤트를 처리하여 새로운 메시지를 전송하고 데이터베이스에 저장합니다.
         socket.on('new_message', async (msg, roomId, done) => {
             try {
-                const nickName = '토론자';
+                const nickName = nickName;
                 console.log('1 msg =', msg);
 
                 // 해당 토론방에 새로운 메시지를 전송합니다.
-                socket.to(roomId).emit('new_chat', `토론자: ${msg}`);
+                socket.to(roomId).emit('new_chat', `${nickName}: ${msg}`);
                 done(); // 클라이언트에게 완료를 알립니다.
 
                 // 채팅 내용을 데이터베이스에 저장합니다.
