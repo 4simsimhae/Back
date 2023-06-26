@@ -43,6 +43,6 @@ module.exports.socketRandomName = async (socket, next) => {
         next();
     } catch (error) {
         console.error('닉네임 부여 실패:', error);
-        socket.emit('error', '닉네임 부여에 실패했습니다.');
+        socket.request.emit('error', '닉네임 부여에 실패했습니다.');
     }
 };
