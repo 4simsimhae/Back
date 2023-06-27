@@ -28,13 +28,11 @@ router.get(
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
             const query = '?token=' + token;
             res.locals.token = token;
-            console.log("이건 쿼리에 담긴 토큰 = ",token);
+            console.log('이건 쿼리에 담긴 토큰 = ', token);
 
             //cookie
 
-            res.redirect(
-                `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
-            );
+            res.redirect(`http://localhost:3000/auth/kakao/callback/${query}`);
             // res.redirect(
             //     `http://localhost:3000/auth/kakao/callback/${query}`
             // );
@@ -54,9 +52,7 @@ router.get('/auth/logout', (req, res) => {
             console.error(err);
             return res.redirect('/'); // 로그아웃 중 에러가 발생한 경우에 대한 처리
         }
-        res.redirect(
-            'https://front-black-delta.vercel.app/'
-        ); // 로그아웃 성공 시 리다이렉트
+        res.redirect('https://front-black-delta.vercel.app/'); // 로그아웃 성공 시 리다이렉트
         // res.redirect(
         //     'http://localhost:3000/'
         // );

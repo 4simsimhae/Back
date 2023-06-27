@@ -182,7 +182,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
 
         //userInfo 수정
         const splitname = randomName.split(' ');
-        const newRandomName = splitname[splitname.length-1];
+        const newRandomName = splitname[splitname.length - 1];
         console.log(newRandomName);
         const nickName = newRandomName; //오픈API로 받기
         const like = 0;
@@ -193,16 +193,23 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
 
         if (!userId) {
             //만약 로그인 유저가 아니라면! 정보만들기
-            const nologinuserId = 0;
-            await UserInfo.create({
-                userId: nologinuserId,
-                roomId,
-                nickName,
-                like,
-                hate,
-                questionMark,
-                debater,
-            });
+            if (!userId) {
+                // 만약 로그인 유저가 아니라면! 정보 만들기
+                const newUser = await User.create({
+                    kakaoId:
+                        'notlogin' +
+                        Math.floor(100000 + Math.random() * 900000),
+                });
+                await UserInfo.create({
+                    userId: newUser.userId, // User 테이블에서 생성된 user.id 값을 참조
+                    roomId,
+                    nickName,
+                    like,
+                    hate,
+                    questionMark,
+                    debater,
+                });
+            }
         } else {
             //로그인 유저라면 정보 수정하기!
             await UserInfo.update(
@@ -259,7 +266,7 @@ router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
         }
 
         //만약 로그인 유저가 아니라면 오류!
-        console.log('토큰안에 어떤정보가 담겨있냐 = ',userId);
+        console.log('토큰안에 어떤정보가 담겨있냐 = ', userId);
         if (!userId) {
             const response = new ApiResponse(
                 403,
@@ -321,8 +328,8 @@ router.delete('/roomlist/:roomId', async (req, res) => {
     try {
         const { roomId } = req.params;
         await Room.destroy({
-            where: { roomId }
-        })
+            where: { roomId },
+        });
         const response = new ApiResponse(200, '방이 삭제되었습니다', []);
         return res.status(200).json(response);
     } catch (error) {
