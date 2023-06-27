@@ -3,6 +3,7 @@ const socketRandomName = require('../middlewares/socketRandomName');
 // const { socketCheckLogin } = require('../middlewares/socketCheckLogin');
 
 module.exports = (io) => {
+    let nickNames = [];
     io.on('connection', (socket) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
@@ -78,8 +79,6 @@ module.exports = (io) => {
                 if (!socket.locals) {
                     socket.locals = {};
                 }
-
-                const nickNames = [];
 
                 socketRandomName(socket, () => {
                     const nickName = socket.locals.random;
