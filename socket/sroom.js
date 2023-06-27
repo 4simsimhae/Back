@@ -11,7 +11,9 @@ module.exports = (io) => {
         // 토론자로 참여하기
         socket.on('joinDebate', async (userId, roomId, done) => {
             try {
-                const user = await UserInfo.findOne({ where: { userId } });
+                const user = await UserInfo.findOne({
+                    where: { userId },
+                });
                 console.log('1=', 1);
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
@@ -41,7 +43,7 @@ module.exports = (io) => {
 
                     user.save().then(() => {
                         done();
-                        socket.emit('debaterJoined', { userId });
+                        io.to(roomId).emit('roomJoined', nickName);
                     });
                     console.log('4=', 4);
                 });
@@ -77,6 +79,8 @@ module.exports = (io) => {
                     socket.locals = {};
                 }
 
+                const nickNames = [];
+
                 socketRandomName(socket, () => {
                     const nickName = socket.locals.random;
                     socket.nickName = nickName;
@@ -86,11 +90,19 @@ module.exports = (io) => {
 
                     user.save().then(() => {
                         done();
-                        socket.emit('jurorJoined', { userId });
+
+                        nickNames.push(nickName);
+                        io.to(roomId).emit('roomJoined', nickNames);
                     });
                     console.log('4=', 4);
                 });
                 console.log('3=', 3);
+                socket.on('disconnecting', () => {
+                    const nickName = socket.nickName;
+                    nickNames = nickNames.filter((item) => item !== nickName);
+                    io.to(roomId).emit('debaterLeft', nickName);
+                    io.to(roomId).emit('jurorJoined', nickNames);
+                });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
                 socket.emit('error', '배심원 참여 처리에 실패했습니다.');
