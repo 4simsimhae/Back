@@ -257,7 +257,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                 }
             );
             console.log('-------------');
-            console.log(token);
+            console.log('비로그인 유저 토큰 = ',token);
             console.log('-------------');
             //헤더에 토큰담아 보내기
             res.set({ Authorization: `Bearer ${token}` });
