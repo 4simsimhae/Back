@@ -11,21 +11,17 @@ module.exports = (io) => {
 
         // 방인원 체크
         async function updateRoomCount(roomId) {
-            console.log('roomId=', roomId);
-            const debateUser = await UserInfo.count({
-                where: { roomId, debater: 1 },
-            });
-            console.log('debateUser=', debateUser);
-            const jurorUser = await UserInfo.count({
-                where: { roomId, debater: 0 },
-            });
-            console.log('jurorUser=', jurorUser);
+            // roomId를 받아서 UserInfo 테이블에서 roomId가 일치 하면서 debater값이 0,1인 인원수 카운트
+            const [debateUserCount, jurorUserCount] = await Promise.all([
+                UserInfo.count({ where: { roomId, debater: 1 } }),
+                UserInfo.count({ where: { roomId, debater: 0 } }),
+            ]);
 
-            const res = await Room.update(
-                { debater: debateUser, panel: jurorUser },
+            // Room테이블 업데이트
+            await Room.update(
+                { debater: debateUserCount, panel: jurorUserCount },
                 { where: { roomId } }
             );
-            console.log('res=', res);
         }
 
         // 토론자로 참여하기
@@ -50,8 +46,6 @@ module.exports = (io) => {
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
 
-                //
-
                 if (!socket.locals) {
                     socket.locals = {};
                 }
@@ -68,6 +62,7 @@ module.exports = (io) => {
                             done();
 
                             nickNames.push(nickName);
+                            //연결된 socket 전체에게 입장한 유저 nickNames 보내기
                             io.to(roomId).emit('roomJoined', nickNames);
 
                             resolve();
@@ -75,10 +70,12 @@ module.exports = (io) => {
                         console.log('4=', 4);
                     });
                 });
+                //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
                 console.log('3=', 3);
                 socket.on('disconnecting', async () => {
+                    // 방 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
                     nickNames = nickNames.filter((item) => item !== nickName);
                     user.debater = 0;
@@ -86,10 +83,17 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
+
+                    //user 정보 초기화 후 db에 저장
                     await user.save();
+
+                    // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
+
+                    // 방 퇴장 후 남아있는 nickName 리스트 보내기
                     io.to(roomId).emit('roomJoined', nickNames);
 
+                    //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                 });
             } catch (error) {
@@ -123,6 +127,7 @@ module.exports = (io) => {
                     socket.locals = {};
                 }
 
+                //socket(방) 입장 시 닉네임 랜덤API 이용해서 부여
                 await new Promise((resolve) => {
                     socketRandomName(socket, () => {
                         const nickName = socket.locals.random;
@@ -133,19 +138,20 @@ module.exports = (io) => {
 
                         user.save().then(() => {
                             done();
-
+                            //socket(방)에 입장한 닉네임 리스트 만들기
                             nickNames.push(nickName);
+                            //연결된 socket 전체에게 남아 있는 nickNames 보내기
                             io.to(roomId).emit('roomJoined', nickNames);
 
                             resolve();
                         });
-                        console.log('4=', 4);
                     });
                 });
+                //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
-                console.log('3=', 3);
                 socket.on('disconnecting', async () => {
+                    //socket(방) 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
                     nickNames = nickNames.filter((item) => item !== nickName);
                     user.debater = 0;
@@ -153,10 +159,17 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
+
+                    //user 정보 초기화 후 db에 저장
                     await user.save();
+
+                    //연결된 socket 전체에게 나간 유저 nickName 보내기
                     io.to(roomId).emit('roomLeft', nickName);
+
+                    //연결된 socket 전체에게 남아 있는 nickNames 보내기
                     io.to(roomId).emit('roomJoined', nickNames);
 
+                    //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                 });
             } catch (error) {
