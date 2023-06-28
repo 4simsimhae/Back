@@ -204,6 +204,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                 debater,
             });
         } else {
+            console.log(res.locals.user);
             //로그인 유저라면 정보 수정하기!
             await UserInfo.update(
                 {
