@@ -47,27 +47,30 @@ module.exports = (io) => {
                 socket.roomId = room.roomId;
 
                 //
-                updateRoomCount(room.roomId);
 
                 if (!socket.locals) {
                     socket.locals = {};
                 }
 
-                socketRandomName(socket, () => {
-                    const nickName = socket.locals.random;
-                    socket.nickName = nickName;
-                    user.debater = 1;
-                    user.roomId = room.roomId;
-                    user.nickName = nickName;
+                await new Promise((resolve) => {
+                    socketRandomName(socket, () => {
+                        const nickName = socket.locals.random;
+                        socket.nickName = nickName;
+                        user.debater = 1;
+                        user.roomId = room.roomId;
+                        user.nickName = nickName;
 
-                    user.save().then(() => {
-                        done();
+                        user.save().then(() => {
+                            resolve();
+                            done();
 
-                        nickNames.push(nickName);
-                        io.to(roomId).emit('roomJoined', nickNames);
+                            nickNames.push(nickName);
+                            io.to(roomId).emit('roomJoined', nickNames);
+                        });
+                        console.log('4=', 4);
                     });
-                    console.log('4=', 4);
                 });
+                updateRoomCount(room.roomId);
 
                 console.log('3=', 3);
                 socket.on('disconnecting', () => {
@@ -111,28 +114,29 @@ module.exports = (io) => {
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
 
-                //
-                updateRoomCount(room.roomId);
-
                 if (!socket.locals) {
                     socket.locals = {};
                 }
 
-                socketRandomName(socket, () => {
-                    const nickName = socket.locals.random;
-                    socket.nickName = nickName;
-                    user.debater = 0;
-                    user.roomId = room.roomId;
-                    user.nickName = nickName;
+                await new Promise((resolve) => {
+                    socketRandomName(socket, () => {
+                        const nickName = socket.locals.random;
+                        socket.nickName = nickName;
+                        user.debater = 0;
+                        user.roomId = room.roomId;
+                        user.nickName = nickName;
 
-                    user.save().then(() => {
-                        done();
+                        user.save().then(() => {
+                            done();
 
-                        nickNames.push(nickName);
-                        io.to(roomId).emit('roomJoined', nickNames);
+                            nickNames.push(nickName);
+                            io.to(roomId).emit('roomJoined', nickNames);
+                        });
+                        console.log('4=', 4);
                     });
-                    console.log('4=', 4);
                 });
+                updateRoomCount(room.roomId);
+
                 console.log('3=', 3);
                 socket.on('disconnecting', () => {
                     const nickName = socket.nickName;
