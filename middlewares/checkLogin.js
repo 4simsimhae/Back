@@ -35,6 +35,7 @@ module.exports = async (req, res, next) => {
                     userId,
                     process.env.JWT_SECRET
                 );
+                console.log('middleware 디코드한 유저정보 = ', userId);
                 const user = await User.findOne({ where: { userId } });
                 console.log('유저정보담아서보냄');
 
