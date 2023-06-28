@@ -122,93 +122,99 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
 });
 
 //게임 방 만들기
-router.post('/roomlist/:kategorieId', checkLogin, randomName, async (req, res) => {
-    try {
-        const { userId } = res.locals.user;
-        console.log('디코드된 유저정보 = ', res.locals.user);
-        const { kategorieId } = req.params;
-        const newroomName = res.locals.random; //openAPI로 이름받기
-        const { kategorieName } = await Kategorie.findOne({
-            attributes: ['kategorieName'],
-            where: { kategorieId },
-        });
+router.post(
+    '/roomlist/:kategorieId',
+    checkLogin,
+    randomName,
+    async (req, res) => {
+        try {
+            const { userId } = res.locals.user;
+            console.log('디코드된 유저정보 = ', res.locals.user);
+            const { kategorieId } = req.params;
+            const newroomName = res.locals.random; //openAPI로 이름받기
+            const { kategorieName } = await Kategorie.findOne({
+                attributes: ['kategorieName'],
+                where: { kategorieId },
+            });
 
-        //만약 로그인 유저가 아니라면 오류!
-        console.log('토큰안에 어떤정보가 담겨있냐 = ', userId);
-        if (!userId) {
-            const response = new ApiResponse(
-                403,
-                '로그인이 필요한 서비스입니다.'
-            );
-            return res.status(403).json(response);
-        }
-
-        //잘못된 kategorieId
-        if (kategorieId > 8 || kategorieId < 1) {
-            const response = new ApiResponse(
-                403,
-                '해당 카테고리를 찾을 수 없습니다.'
-            );
-            return res(response);
-        }
-
-        //방 생성 정보
-        const roomName = newroomName;
-        const debater = 0;
-        const panel = 0;
-
-        const createdRoom = await Room.create({
-            kategorieId,
-            kategorieName,
-            roomName,
-            debater,
-            panel,
-        });
-        const roomId = createdRoom.roomId;
-
-        const roomlist = await Room.findAll({ //방정보 불러오기 후 보내기
-            attributes: [
-                'roomId',
-                'KategorieName',
-                'roomName',
-                'debater',
-                'panel',
-            ],
-            where: { roomId },
-        });
-
-        //userInfo 수정
-
-        const like = 0;
-        const hate = 0;
-        const questionMark = 0;
-        const Userdebater = 1;
-        await UserInfo.update(
-            {
-                roomId,
-                like,
-                hate,
-                questionMark,
-                debater : Userdebater,
-                updatedAt: new Date(),
-            },
-            {
-                where: { userId },
+            //만약 로그인 유저가 아니라면 오류!
+            console.log('토큰안에 어떤정보가 담겨있냐 = ', userId);
+            if (!userId) {
+                const response = new ApiResponse(
+                    403,
+                    '로그인이 필요한 서비스입니다.'
+                );
+                return res.status(403).json(response);
             }
-        );
 
-        //결과
+            //잘못된 kategorieId
+            if (kategorieId > 8 || kategorieId < 1) {
+                const response = new ApiResponse(
+                    403,
+                    '해당 카테고리를 찾을 수 없습니다.'
+                );
+                return res(response);
+            }
 
-        const response = new ApiResponse(200, '', roomlist);
-        return res.status(200).json(response);
-    } catch (error) {
-        const response = new ApiResponse(
-            500,
-            '예상하지 못한 서버 문제가 발생했습니다.'
-        );
-        return res.status(500).json(response);
+            //방 생성 정보
+            const roomName = newroomName;
+            const debater = 0;
+            const panel = 0;
+
+            const createdRoom = await Room.create({
+                kategorieId,
+                kategorieName,
+                roomName,
+                debater,
+                panel,
+            });
+            const roomId = createdRoom.roomId;
+
+            const roomlist = await Room.findAll({
+                //방정보 불러오기 후 보내기
+                attributes: [
+                    'roomId',
+                    'KategorieName',
+                    'roomName',
+                    'debater',
+                    'panel',
+                ],
+                where: { roomId },
+            });
+
+            //userInfo 수정
+
+            const like = 0;
+            const hate = 0;
+            const questionMark = 0;
+            const Userdebater = 1;
+            await UserInfo.update(
+                {
+                    roomId,
+                    like,
+                    hate,
+                    questionMark,
+                    debater: Userdebater,
+                    updatedAt: new Date(),
+                },
+                {
+                    where: { userId },
+                }
+            );
+
+            //결과
+
+            const response = new ApiResponse(200, '', roomlist);
+            return res.status(200).json(response);
+        } catch (error) {
+            const response = new ApiResponse(
+                500,
+                '예상하지 못한 서버 문제가 발생했습니다.'
+            );
+            return res.status(500).json(response);
+        }
     }
-});
+);
 
 //입장하기 버튼으로 랜덤닉네임 생성하기
 router.put('/user', checkLogin, randomName, async (req, res) => {
@@ -257,10 +263,14 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                 }
             );
             console.log('-------------');
-            console.log('비로그인 유저 토큰 = ',token);
+            console.log('비로그인 유저 토큰 = ', token);
             console.log('-------------');
             //헤더에 토큰담아 보내기
-            res.set({ Authorization: `Bearer ${token}` });
+            //결과
+            const response = new ApiResponse(200, '', [
+                { Authorization: `Bearer ${token}` },
+            ]);
+            return res.status(200).json(response);
         } else {
             console.log('정보 있음 = ', res.locals.user);
             //로그인 유저라면 정보 수정하기!
@@ -278,11 +288,10 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                     where: { userId },
                 }
             );
+            //결과
+            const response = new ApiResponse(200, '', []);
+            return res.status(200).json(response);
         }
-
-        //결과
-        const response = new ApiResponse(200, '', []);
-        return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
             500,
