@@ -14,15 +14,17 @@ class ApiResponse {
 module.exports = async (req, res, next) => {
     try {
         const Authorization = req.header('Authorization');
+        console.log('아곤 받은 토큰 = ', Authorization);
         // 토큰이 있는지 확인
         if (!Authorization) {
+            console.log('토큰 없음 --------------');
             res.locals.user = [];
         } else {
-            console.log('읽어지나?');
+            console.log('토큰 있음 ------------------?');
 
             const [authType, authToken] = Authorization.split(' ');
             console.log(Authorization, authType, authToken);
-            console.log('-----------');
+            console.log('토큰 형식 ---------------');
 
             // authType === Bearer인지 확인
             if (authType !== 'Bearer' || !authToken) {
