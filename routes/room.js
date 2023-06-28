@@ -268,7 +268,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
             //헤더에 토큰담아 보내기
             //결과
             const response = new ApiResponse(200, '', [
-                { Authorization: `Bearer ${token}` },
+                { Authorization: `Bearer ${token}`, kakaoId: nologinuserId },
             ]);
             return res.status(200).json(response);
         } else {
