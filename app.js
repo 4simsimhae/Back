@@ -53,6 +53,7 @@ app.use(
         saveUninitialized: false,
         cookie: {
             domain: 'http://localhost:3000',
+            // domain: 'https://front-black-delta.vercel.app',
             path: '/',
             secure: false,
             httpOnly: false,
@@ -99,6 +100,5 @@ app.get('/', (req, res) => {
 
 socketHandlers(io);
 
-server.listen(3001, () => {
-    console.log('3001 포트로 서버 연결');
-});
+server.listen(3000, () => {
+    console.log('3000 포트로 서버 연결');
