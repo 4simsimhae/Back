@@ -9,6 +9,21 @@ module.exports = (io) => {
             console.log(`Socket Event: ${event}`);
         });
 
+        // 방인원 체크
+        async function updateRoomCount(roomId) {
+            const debateUser = await UserInfo.count({
+                where: { roomId, debater: 1 },
+            });
+            const jurorUser = await UserInfo.count({
+                where: { roomId, debater: 0 },
+            });
+
+            await Room.update(
+                { debater: debateUser, panel: jurorUser },
+                { where: { roomId } }
+            );
+        }
+
         // 토론자로 참여하기
         socket.on('joinDebate', async (userId, roomId, done) => {
             try {
@@ -31,6 +46,9 @@ module.exports = (io) => {
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
 
+                //
+                updateRoomCount(room.roomId);
+
                 if (!socket.locals) {
                     socket.locals = {};
                 }
@@ -44,11 +62,28 @@ module.exports = (io) => {
 
                     user.save().then(() => {
                         done();
-                        io.to(roomId).emit('roomJoined', nickName);
+
+                        nickNames.push(nickName);
+                        io.to(roomId).emit('roomJoined', nickNames);
                     });
                     console.log('4=', 4);
                 });
+
                 console.log('3=', 3);
+                socket.on('disconnecting', () => {
+                    const nickName = socket.nickName;
+                    nickNames = nickNames.filter((item) => item !== nickName);
+                    user.debater = 0;
+                    user.like = 0;
+                    user.hate = 0;
+                    user.questionMark = 0;
+                    user.roomId = 0;
+                    user.save();
+                    io.to(roomId).emit('roomLeft', nickName);
+                    io.to(roomId).emit('roomJoined', nickNames);
+
+                    updateRoomCount(room.roomId);
+                });
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
                 socket.emit('error', '토론자 참여 처리에 실패했습니다.');
@@ -76,6 +111,9 @@ module.exports = (io) => {
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
 
+                //
+                updateRoomCount(room.roomId);
+
                 if (!socket.locals) {
                     socket.locals = {};
                 }
@@ -99,8 +137,14 @@ module.exports = (io) => {
                 socket.on('disconnecting', () => {
                     const nickName = socket.nickName;
                     nickNames = nickNames.filter((item) => item !== nickName);
-                    io.to(roomId).emit('debaterLeft', nickName);
-                    io.to(roomId).emit('jurorJoined', nickNames);
+                    user.debater = 0;
+                    user.like = 0;
+                    user.hate = 0;
+                    user.questionMark = 0;
+                    user.roomId = 0;
+                    io.to(roomId).emit('roomLeft', nickName);
+                    io.to(roomId).emit('roomJoined', nickNames);
+                    updateRoomCount(room.roomId);
                 });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);

@@ -191,25 +191,23 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
         const debater = 0;
         const roomId = 0;
 
+        let newUserInfo;
+
         if (!userId) {
-            //만약 로그인 유저가 아니라면! 정보만들기
-            if (!userId) {
-                // 만약 로그인 유저가 아니라면! 정보 만들기
-                const newUser = await User.create({
-                    kakaoId:
-                        'notlogin' +
-                        Math.floor(100000 + Math.random() * 900000),
-                });
-                await UserInfo.create({
-                    userId: newUser.userId, // User 테이블에서 생성된 user.id 값을 참조
-                    roomId,
-                    nickName,
-                    like,
-                    hate,
-                    questionMark,
-                    debater,
-                });
-            }
+            // 만약 로그인 유저가 아니라면! 정보 만들기
+            const newUser = await User.create({
+                kakaoId:
+                    'notlogin' + Math.floor(100000 + Math.random() * 900000),
+            });
+            newUserInfo = await UserInfo.create({
+                userId: newUser.userId, // User 테이블에서 생성된 user.id 값을 참조
+                roomId,
+                nickName,
+                like,
+                hate,
+                questionMark,
+                debater,
+            });
         } else {
             //로그인 유저라면 정보 수정하기!
             await UserInfo.update(
@@ -229,7 +227,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
         }
 
         //결과
-        const response = new ApiResponse(200, '', []);
+        const response = new ApiResponse(200, '', newUserInfo.userId);
         return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
