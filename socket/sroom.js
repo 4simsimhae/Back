@@ -11,17 +11,21 @@ module.exports = (io) => {
 
         // 방인원 체크
         async function updateRoomCount(roomId) {
+            console.log('roomId=', roomId);
             const debateUser = await UserInfo.count({
                 where: { roomId, debater: 1 },
             });
+            console.log('debateUser=', debateUser);
             const jurorUser = await UserInfo.count({
                 where: { roomId, debater: 0 },
             });
+            console.log('jurorUser=', jurorUser);
 
-            await Room.update(
+            const res = await Room.update(
                 { debater: debateUser, panel: jurorUser },
                 { where: { roomId } }
             );
+            console.log('res=', res);
         }
 
         // 토론자로 참여하기
@@ -61,19 +65,20 @@ module.exports = (io) => {
                         user.nickName = nickName;
 
                         user.save().then(() => {
-                            resolve();
                             done();
 
                             nickNames.push(nickName);
                             io.to(roomId).emit('roomJoined', nickNames);
+
+                            resolve();
                         });
                         console.log('4=', 4);
                     });
                 });
-                updateRoomCount(room.roomId);
+                await updateRoomCount(room.roomId);
 
                 console.log('3=', 3);
-                socket.on('disconnecting', () => {
+                socket.on('disconnecting', async () => {
                     const nickName = socket.nickName;
                     nickNames = nickNames.filter((item) => item !== nickName);
                     user.debater = 0;
@@ -81,11 +86,11 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
-                    user.save();
+                    await user.save();
                     io.to(roomId).emit('roomLeft', nickName);
                     io.to(roomId).emit('roomJoined', nickNames);
 
-                    updateRoomCount(room.roomId);
+                    await updateRoomCount(room.roomId);
                 });
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
@@ -131,14 +136,16 @@ module.exports = (io) => {
 
                             nickNames.push(nickName);
                             io.to(roomId).emit('roomJoined', nickNames);
+
+                            resolve();
                         });
                         console.log('4=', 4);
                     });
                 });
-                updateRoomCount(room.roomId);
+                await updateRoomCount(room.roomId);
 
                 console.log('3=', 3);
-                socket.on('disconnecting', () => {
+                socket.on('disconnecting', async () => {
                     const nickName = socket.nickName;
                     nickNames = nickNames.filter((item) => item !== nickName);
                     user.debater = 0;
@@ -146,9 +153,11 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
+                    await user.save();
                     io.to(roomId).emit('roomLeft', nickName);
                     io.to(roomId).emit('roomJoined', nickNames);
-                    updateRoomCount(room.roomId);
+
+                    await updateRoomCount(room.roomId);
                 });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
