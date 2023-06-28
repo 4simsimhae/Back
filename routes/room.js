@@ -121,14 +121,26 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
 });
 
 //게임 방 만들기
-router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
+router.post('/roomlist/:kategorieId', checkLogin, randomName, async (req, res) => {
     try {
+        const { userId } = res.locals.user;
+        console.log('디코드된 유저정보 = ', res.locals.user);
         const { kategorieId } = req.params;
         const newroomName = res.locals.random; //openAPI로 이름받기
         const { kategorieName } = await Kategorie.findOne({
             attributes: ['kategorieName'],
             where: { kategorieId },
         });
+
+        //만약 로그인 유저가 아니라면 오류!
+        console.log('토큰안에 어떤정보가 담겨있냐 = ', userId);
+        if (!userId) {
+            const response = new ApiResponse(
+                403,
+                '로그인이 필요한 서비스입니다.'
+            );
+            return res.status(403).json(response);
+        }
 
         //잘못된 kategorieId
         if (kategorieId > 8 || kategorieId < 1) {
@@ -139,6 +151,7 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             return res(response);
         }
 
+        //방 생성 정보
         const roomName = newroomName;
         const debater = 0;
         const panel = 0;
@@ -152,7 +165,7 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
         });
         const roomId = createdRoom.roomId;
 
-        const roomlist = await Room.findAll({
+        const roomlist = await Room.findAll({ //방정보 불러오기 후 보내기
             attributes: [
                 'roomId',
                 'KategorieName',
@@ -162,6 +175,28 @@ router.post('/roomlist/:kategorieId', randomName, async (req, res) => {
             ],
             where: { roomId },
         });
+
+        //userInfo 수정
+
+        const like = 0;
+        const hate = 0;
+        const questionMark = 0;
+        const Userdebater = 1;
+        await UserInfo.update(
+            {
+                roomId,
+                like,
+                hate,
+                questionMark,
+                debater : Userdebater,
+                updatedAt: new Date(),
+            },
+            {
+                where: { userId },
+            }
+        );
+
+        //결과
 
         const response = new ApiResponse(200, '', roomlist);
         return res.status(200).json(response);
@@ -183,8 +218,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
 
         //userInfo 수정
         const splitname = randomName.split(' ');
-        const newRandomName = splitname[splitname.length-1];
-        console.log(newRandomName);
+        const newRandomName = splitname[splitname.length - 1];
         const nickName = newRandomName; //오픈API로 받기
         const like = 0;
         const hate = 0;
@@ -195,8 +229,15 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
         if (!userId) {
             //만약 로그인 유저가 아니라면! 정보만들기
             const nologinuserId = 0;
+            const newNoLoginUser = await User.create(
+                //User 정보 생성하기
+                {
+                    kakaoId: nologinuserId,
+                }
+            );
             await UserInfo.create({
-                userId: nologinuserId,
+                //UserInfo 생성하기
+                userId: newNoLoginUser.userId,
                 roomId,
                 nickName,
                 like,
@@ -204,6 +245,18 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                 questionMark,
                 debater,
             });
+            const token = jwt.sign(
+                //그리고 토큰보내기
+                {
+                    userId: newNoLoginUser.userId,
+                },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: '1d',
+                }
+            );
+            //헤더에 토큰담아 보내기
+            res.set({ Authorization: `Bearer ${token}` });
         } else {
             console.log('정보 있음 = ', res.locals.user);
             //로그인 유저라면 정보 수정하기!
@@ -261,7 +314,7 @@ router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
         }
 
         //만약 로그인 유저가 아니라면 오류!
-        console.log('토큰안에 어떤정보가 담겨있냐 = ',userId);
+        console.log('토큰안에 어떤정보가 담겨있냐 = ', userId);
         if (!userId) {
             const response = new ApiResponse(
                 403,
@@ -294,18 +347,6 @@ router.put('/discussant/:roomId', checkLogin, randomName, async (req, res) => {
             }
         );
 
-        // //방 토론자 수 증가
-        // const { debaterNumber } = await Room.findOne({
-        //     attributes: ['debater'],
-        //     where: { roomId },
-        // });
-        // await Room.update(
-        //     { debater: debaterNumber.debater + 1 },
-        //     {
-        //         where: { roomId },
-        //     }
-        // );
-
         //결과
         const response = new ApiResponse(200, '', []);
         return res.status(200).json(response);
@@ -323,8 +364,8 @@ router.delete('/roomlist/:roomId', async (req, res) => {
     try {
         const { roomId } = req.params;
         await Room.destroy({
-            where: { roomId }
-        })
+            where: { roomId },
+        });
         const response = new ApiResponse(200, '방이 삭제되었습니다', []);
         return res.status(200).json(response);
     } catch (error) {

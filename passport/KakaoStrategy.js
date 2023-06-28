@@ -27,7 +27,10 @@ module.exports = () => {
                             {
                                 userId: exUser.userId,
                             },
-                            process.env.JWT_SECRET
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: '1d',
+                            }
                         );
                         console.log("토큰이 잘보이나요?11 ",token);
                         return done(null, token);
