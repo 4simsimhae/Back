@@ -16,7 +16,7 @@ module.exports = {
                 type: Sequelize.INTEGER,
             },
             chatList: {
-                type: Sequelize.STRING,
+                type: Sequelize.TEXT,
             },
             createdAt: {
                 allowNull: false,

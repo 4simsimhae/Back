@@ -28,9 +28,7 @@ router.get(
             const token = req.user; // 사용자 토큰 정보 (예: JWT 토큰)
             const query = '?token=' + token;
             res.locals.token = token;
-            console.log("이건 쿼리에 담긴 토큰 = ",token);
-
-            //cookie
+            console.log('이건 쿼리에 담긴 토큰 = ', token);
 
             // res.redirect(
             //     `https://front-black-delta.vercel.app/auth/kakao/callback/${query}`
