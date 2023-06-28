@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const { User, Kategorie, UserInfo, Room, subject, chat } = require('../models');
 const randomName = require('../middlewares/randomName.js');
 const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
@@ -255,6 +256,9 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                     expiresIn: '1d',
                 }
             );
+            console.log('-------------');
+            console.log(token);
+            console.log('-------------');
             //헤더에 토큰담아 보내기
             res.set({ Authorization: `Bearer ${token}` });
         } else {
