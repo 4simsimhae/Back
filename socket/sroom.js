@@ -4,7 +4,7 @@ const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
 
 module.exports = (io) => {
-    const nickNames = {};
+    let nickNames = [];
     io.on('connection', (socket) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
@@ -60,10 +60,6 @@ module.exports = (io) => {
                     return;
                 }
 
-                if (!nickNames[roomId]) {
-                    nickNames[roomId] = []; // 방에 대한 nickNames 배열 초기화
-                }
-
                 console.log('roomId=', roomId);
                 const room = await Room.findOne({ where: { roomId } });
                 console.log('2=', 2);
@@ -107,7 +103,7 @@ module.exports = (io) => {
                 socket.on('disconnecting', async () => {
                     // 방 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
-                    nickNames[roomId] = nickNames[roomId].filter((item) => item !== nickName);
+                    nickNames = nickNames.filter((item) => item !== nickName);
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -121,7 +117,7 @@ module.exports = (io) => {
                     io.to(roomId).emit('roomLeft', nickName);
 
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
-                    io.to(roomId).emit('roomJoined', nickNames[roomId]);
+                    io.to(roomId).emit('roomJoined', nickNames);
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
@@ -150,10 +146,6 @@ module.exports = (io) => {
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
                     return;
-                }
-
-                if (!nickNames[roomId]) {
-                    nickNames[roomId] = []; // 방에 대한 nickNames 배열 초기화
                 }
 
                 const room = await Room.findOne({ where: { roomId } });
@@ -211,7 +203,7 @@ module.exports = (io) => {
                     io.to(roomId).emit('roomLeft', nickName);
 
                     //연결된 socket 전체에게 남아 있는 nickNames 보내기
-                    io.to(roomId).emit('roomJoined', nickNames[roomId]);
+                    io.to(roomId).emit('roomJoined', nickNames);
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);

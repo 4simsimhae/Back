@@ -88,11 +88,8 @@ router.post('/chatgpt', async (req, res) => {
         console.log("wow = ", objectReply);
         const roomlist = await Subject.findAll({
             attributes: [
-                'subjectId',
-                'KategorieName',
-                'subjectList',
-            ],
-            where: { kategorieName },
+                'subjectId'
+            ]
         });
         res.json({ roomlist });
         //질문 몇개 DB에 저장하기 코드 추가예정
