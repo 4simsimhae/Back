@@ -2,6 +2,7 @@ const { UserInfo, Room, User, Chat, Subject } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
+
 module.exports = (io) => {
     let nickNames = [];
     io.on('connection', (socket) => {
@@ -140,6 +141,7 @@ module.exports = (io) => {
                     where: { userId: socket.locals.user.userId },
                 });
                 console.log(user);
+
 
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');

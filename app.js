@@ -53,6 +53,7 @@ app.use(
         saveUninitialized: false,
         cookie: {
             domain: 'http://localhost:3000',
+            // domain: 'https://front-black-delta.vercel.app',
             path: '/',
             secure: false,
             httpOnly: false,
