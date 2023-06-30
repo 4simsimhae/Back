@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { User, Kategorie, UserInfo, Room, Subject, chat } = require('../models');
-//const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 
 //open API
 require('dotenv').config();
@@ -78,22 +77,26 @@ router.post('/chatgpt', async (req, res) => {
         //우리가 원하는 형식의 질문을 받아야합니다.
         const [ kategorieName1, kategorieName2] = kategorieName.split(' ');
         const { ask } = {
-            ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
+            ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
         };
 
         const reply = await callChatGPT([{ role: 'user', content: ask }]);
         
-        //몇초 기다린 후 없으면 DB값 불러오기
-        if (reply && reply.content) {
-            //응답 들어있는지 확인
-            const content = JSON.parse(reply.content);
-            const objectReply = Object.values(content);
-            res.json({ role: 'user', reply: objectReply });
-            //질문 몇개 DB에 저장하기 코드 추가예정
-        } else {
-            //DB에 저장되어있는 파일 불러오기 코드 추가예정
-            res.json(reply);
-        }
+        //응답 들어있는지 확인
+        const content = JSON.parse(reply.content);
+        const objectReply = Object.values(content);
+        console.log("wow = ", objectReply);
+        const roomlist = await Subject.findAll({
+            attributes: [
+                'subjectId',
+                'KategorieName',
+                'subjectList',
+            ],
+            where: { kategorieName },
+        });
+        res.json({ roomlist });
+        //질문 몇개 DB에 저장하기 코드 추가예정
+        
     } catch (error) {
         const response = new ApiResponse(
             500,
