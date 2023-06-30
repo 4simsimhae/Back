@@ -103,7 +103,7 @@ router.post('/chatgpt', async (req, res) => {
     }
 });
 
-//선택된 주제 받기
+//선택된 주제 받기//
 router.put('/chatgpt/:roomId', async (req, res) => {
     try {
         const { roomId } = req.params;
