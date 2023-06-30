@@ -1,4 +1,4 @@
-const { UserInfo, Room, Chat } = require('../models');
+const { UserInfo, Room, User, Chat } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
@@ -35,22 +35,27 @@ module.exports = (io) => {
                 console.log('넘어온유저아이디=', socket.locals.user.userId);
                 const user = await UserInfo.findOne({
                     where: { userId: socket.locals.user.userId },
+                    include: [
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['kakaoId'],
+                        },
+                    ],
                 });
                 console.log('1=', 1);
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
                     return;
                 }
-
-                if (user.kakaoId === 0) {
-                    console.log('kakaoId=', user.kakaoId);
+                console.log('kakaoId=', user.user.kakaoId);
+                if (user.user.kakaoId === 0) {
                     socket.emit('error', '로그인이 필요합니다.');
                     return;
                 }
 
                 console.log('roomId=', roomId);
                 const room = await Room.findOne({ where: { roomId } });
-                console.log(room);
                 console.log('2=', 2);
                 if (!room) {
                     socket.emit('error', '입장할 수 있는 방이 없습니다.');
@@ -82,13 +87,13 @@ module.exports = (io) => {
 
                             resolve();
                         });
-                        console.log('4=', 4);
+                        console.log('3=', 3);
                     });
                 });
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
-                console.log('3=', 3);
+                console.log('4=', 4);
                 socket.on('disconnecting', async () => {
                     // 방 나가기전에 user정보 초기화
                     const nickName = socket.nickName;

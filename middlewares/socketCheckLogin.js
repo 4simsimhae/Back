@@ -31,7 +31,6 @@ module.exports = async (socket, next) => {
                 console.log('미들웨어 디코드한 유저 정보 =', userId);
 
                 const user = await User.findOne({ where: { userId } });
-                console.log('user=', user);
                 console.log('유저 정보를 소켓 로컬에 저장');
                 socket.locals.user = user;
 
