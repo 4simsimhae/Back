@@ -76,8 +76,9 @@ router.post('/chatgpt', async (req, res) => {
         const { kategorieName } = req.body;
         //여기 아래에 있는 문장을 적절하게 수정하여
         //우리가 원하는 형식의 질문을 받아야합니다.
+        const [ kategorieName1, kategorieName2] = kategorieName.split(' ');
         const { ask } = {
-            ask: `${kategorieName} 카테고리에 대한 황당하고 엽기스러운 토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
+            ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
         };
 
         const reply = await callChatGPT([{ role: 'user', content: ask }]);
