@@ -52,11 +52,11 @@ module.exports = (io) => {
 
                 console.log('kakaoId=', user.user.kakaoId);
                 if (user.user.kakaoId == 0) {
-                    console.log('조건이 일치함');
-                    console.log('kakaoId=', user.user.kakaoId);
-                    socket.emit('error', '로그인이 필요합니다.');
-                    console.log('Socket Event: error');
-                    // done('msg');
+                    // console.log('조건이 일치함');
+                    // console.log('kakaoId=', user.user.kakaoId);
+                    // socket.emit('error', '로그인이 필요합니다.');
+                    // console.log('Socket Event: error');
+                    done('msg');
                     return;
                 }
 
