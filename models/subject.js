@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
                 primaryKey: true,
                 type: DataTypes.INTEGER,
             },
-            kategorieName: {
+            kategorieId: {
                 type: DataTypes.STRING,
             },
             subjectList: {

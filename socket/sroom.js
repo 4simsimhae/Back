@@ -2,9 +2,8 @@ const { UserInfo, Room, User, Chat, Subject } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
-
 module.exports = (io) => {
-    let nickNames = [];
+    let nickNames = {};
     io.on('connection', (socket) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
@@ -52,11 +51,11 @@ module.exports = (io) => {
 
                 console.log('kakaoId=', user.user.kakaoId);
                 if (user.user.kakaoId == 0) {
-                    console.log('조건이 일치함');
-                    console.log('kakaoId=', user.user.kakaoId);
-                    socket.emit('error', '로그인이 필요합니다.');
-                    console.log('Socket Event: error');
-                    // done('msg');
+                    // console.log('조건이 일치함');
+                    // console.log('kakaoId=', user.user.kakaoId);
+                    // socket.emit('error', '로그인이 필요합니다.');
+                    // console.log('Socket Event: error');
+                    done('msg');
                     return;
                 }
 
@@ -70,6 +69,15 @@ module.exports = (io) => {
 
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
+
+                // 방이 존재하지 않을 경우 방과 nickNames를 초기화한 빈 배열로 생성
+                if (!nickNames[roomId]) {
+                    nickNames[roomId] = { nickNames: [] };
+                }
+
+                if (!Array.isArray(nickNames[roomId].nickNames)) {
+                    nickNames[roomId].nickNames = [];
+                }
 
                 if (!socket.locals) {
                     socket.locals = {};
@@ -86,10 +94,16 @@ module.exports = (io) => {
                         user.save().then(() => {
                             done();
 
-                            nickNames.push(nickName);
-                            console.log(nickNames);
+                            nickNames[roomId].nickNames = [
+                                ...nickNames[roomId].nickNames,
+                                nickName,
+                            ];
+                            console.log(nickNames[roomId].nickNames);
                             //연결된 socket 전체에게 입장한 유저 nickNames 보내기
-                            io.to(roomId).emit('roomJoined', nickNames);
+                            io.to(roomId).emit(
+                                'roomJoined',
+                                nickNames[roomId].nickNames
+                            );
 
                             resolve();
                         });
@@ -103,7 +117,9 @@ module.exports = (io) => {
                 socket.on('disconnecting', async () => {
                     // 방 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
-                    nickNames = nickNames.filter((item) => item !== nickName);
+                    nickNames[roomId].nickNames = nickNames[
+                        roomId
+                    ].nickNames.filter((item) => item !== nickName);
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -117,7 +133,10 @@ module.exports = (io) => {
                     io.to(roomId).emit('roomLeft', nickName);
 
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
-                    io.to(roomId).emit('roomJoined', nickNames);
+                    io.to(roomId).emit(
+                        'roomJoined',
+                        nickNames[roomId].nickNames
+                    );
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
@@ -142,7 +161,6 @@ module.exports = (io) => {
                 });
                 console.log(user);
 
-
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
                     return;
@@ -163,6 +181,15 @@ module.exports = (io) => {
                     socket.locals = {};
                 }
 
+                // 방이 존재하지 않을 경우 방과 nickNames를 초기화한 빈 배열로 생성
+                if (!nickNames[roomId]) {
+                    nickNames[roomId] = { nickNames: [] };
+                }
+
+                if (!Array.isArray(nickNames[roomId].nickNames)) {
+                    nickNames[roomId].nickNames = [];
+                }
+
                 //socket(방) 입장 시 닉네임 랜덤API 이용해서 부여
                 await new Promise((resolve) => {
                     socketRandomName(socket, () => {
@@ -175,9 +202,19 @@ module.exports = (io) => {
                         user.save().then(() => {
                             done();
                             //socket(방)에 입장한 닉네임 리스트 만들기
-                            nickNames.push(nickName);
+                            nickNames[roomId].nickNames = [
+                                ...nickNames[roomId].nickNames,
+                                nickName,
+                            ];
+                            console.log(
+                                '닉네임리스트 =',
+                                nickNames[roomId].nickNames
+                            );
                             //연결된 socket 전체에게 남아 있는 nickNames 보내기
-                            io.to(roomId).emit('roomJoined', nickNames);
+                            io.to(roomId).emit(
+                                'roomJoined',
+                                nickNames[roomId].nickNames
+                            );
 
                             resolve();
                         });
@@ -189,7 +226,10 @@ module.exports = (io) => {
                 socket.on('disconnecting', async () => {
                     //socket(방) 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
-                    nickNames[roomId] = nickNames[roomId].filter((item) => item !== nickName);
+                    nickNames[roomId].nickNames = nickNames[
+                        roomId
+                    ].nickNames.filter((item) => item !== nickName);
+                    console.log('닉네임리스트2 =', nickNames[roomId].nickNames);
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -203,7 +243,10 @@ module.exports = (io) => {
                     io.to(roomId).emit('roomLeft', nickName);
 
                     //연결된 socket 전체에게 남아 있는 nickNames 보내기
-                    io.to(roomId).emit('roomJoined', nickNames);
+                    io.to(roomId).emit(
+                        'roomJoined',
+                        nickNames[roomId].nickNames
+                    );
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
@@ -219,14 +262,21 @@ module.exports = (io) => {
         // 게임 시작
         socket.on('show_roulette', async (result, done) => {
             try {
-                console.log('kategorieId=', socket.kategorieId);
-                const kategorieId = socket.kategorieId;
+                // console.log('kategorieId=', socket.kategorieId);
+                // console.log('socket.handshake=', socket.handshake);
+                const kategorieId = '1';
                 const subjectList = await Subject.findOne({
                     where: { kategorieId },
                 });
+                console.log('subjectList=', subjectList);
 
-                const allSubjects = subjectList.subjectList;
+                const allSubjects = JSON.parse(
+                    subjectList.dataValues.subjectList
+                );
+                console.log('allSubjects=', allSubjects);
                 const randomSubjects = getRandomSubjects(allSubjects, 8);
+                console.log('randomSubjects=', randomSubjects);
+                console.log('result=', result);
                 io.to(socket.roomId).emit(
                     'show_roulette',
                     randomSubjects,
@@ -238,6 +288,32 @@ module.exports = (io) => {
                 socket.emit('error', '주제 룰렛 실행에 실패했습니다.');
             }
         });
+
+        // socket.on('start_roulette', async (roomNumber) => {
+        //     try {
+        //         const kategorieId = '1';
+        //         const subjectList = await Subject.findOne({
+        //             where: { kategorieId },
+        //         });
+        //         const allSubjects = JSON.parse(
+        //             subjectList.dataValues.subjectList
+        //         );
+        //         const randomSubject = getRandomSubjects(allSubjects, 1)[0];
+
+        //         // 주제를 방 제목으로 설정
+        //         const room = await Room.findOne({
+        //             where: { roomId: roomNumber },
+        //         });
+        //         room.roomName = randomSubject;
+        //         await room.save();
+
+        //         // 방 제목을 클라이언트에 전달
+        //         io.to(roomNumber).emit('roulette_result', randomSubject);
+        //     } catch (error) {
+        //         console.error('룰렛 실행 실패:', error);
+        //         socket.emit('error', '룰렛 실행에 실패했습니다.');
+        //     }
+        // });
 
         function getRandomSubjects(subjects, count) {
             const shuffled = subjects.sort(() => 0.5 - Math.random()); // 배열을 랜덤하게 섞음
