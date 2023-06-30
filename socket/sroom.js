@@ -1,4 +1,4 @@
-const { UserInfo, Room, User, Chat } = require('../models');
+const { UserInfo, Room, User, Chat, Subject } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
@@ -48,9 +48,14 @@ module.exports = (io) => {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
                     return;
                 }
+
                 console.log('kakaoId=', user.user.kakaoId);
-                if (user.user.kakaoId === 0) {
+                if (user.user.kakaoId == 0) {
+                    console.log('조건이 일치함');
+                    console.log('kakaoId=', user.user.kakaoId);
                     socket.emit('error', '로그인이 필요합니다.');
+                    console.log('Socket Event: error');
+                    // done('msg');
                     return;
                 }
 
@@ -207,7 +212,36 @@ module.exports = (io) => {
             }
         });
 
+        //
+
         // 게임 시작
+        socket.on('show_roulette', async (result, done) => {
+            try {
+                console.log('kategorieId=', socket.kategorieId);
+                const kategorieId = socket.kategorieId;
+                const subjectList = await Subject.findOne({
+                    where: { kategorieId },
+                });
+
+                const allSubjects = subjectList.subjectList;
+                const randomSubjects = getRandomSubjects(allSubjects, 8);
+                io.to(socket.roomId).emit(
+                    'show_roulette',
+                    randomSubjects,
+                    result
+                );
+                done();
+            } catch (error) {
+                console.error('주제 룰렛 실행 실패:', error);
+                socket.emit('error', '주제 룰렛 실행에 실패했습니다.');
+            }
+        });
+
+        function getRandomSubjects(subjects, count) {
+            const shuffled = subjects.sort(() => 0.5 - Math.random()); // 배열을 랜덤하게 섞음
+            return shuffled.slice(0, count); // 앞에서부터 count 개수만큼의 요소 반환
+        }
+
         socket.on('startDebate', async (roomId) => {
             try {
                 const debaterUsers = await UserInfo.findAll({
