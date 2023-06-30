@@ -27,7 +27,10 @@ module.exports = () => {
                             {
                                 userId: exUser.userId,
                             },
-                            process.env.JWT_SECRET
+                            process.env.JWT_SECRET,
+                            {
+                                expiresIn: '1d',
+                            }
                         );
                         return done(null, token);
                     } else {
@@ -55,7 +58,6 @@ module.exports = () => {
                                 expiresIn: '1d',
                             }
                         );
-                        console.log(token);
                         return done(null, token);
                     }
                 } catch (error) {

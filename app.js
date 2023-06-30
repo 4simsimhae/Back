@@ -24,14 +24,22 @@ app.use(cookieParser());
 const cors = require('cors');
 app.use(
     cors({
-        origin: ['https://simsimhae.store', 'http://localhost:3000'],
+        origin: [
+            'https://simsimhae.store',
+            'http://localhost:3000',
+            'https://front-black-delta.vercel.app',
+        ],
         credentials: true,
     })
 );
 
 const io = require('socket.io')(server, {
     cors: {
-        origin: ['https://simsimhae.store', 'http://localhost:3000'],
+        origin: [
+            'https://simsimhae.store',
+            'http://localhost:3000',
+            'https://front-black-delta.vercel.app',
+        ],
         credentials: true,
     },
 });
@@ -45,6 +53,7 @@ app.use(
         saveUninitialized: false,
         cookie: {
             domain: 'http://localhost:3000',
+            // domain: 'https://front-black-delta.vercel.app',
             path: '/',
             secure: false,
             httpOnly: false,
@@ -93,4 +102,4 @@ socketHandlers(io);
 
 server.listen(3000, () => {
     console.log('3000 포트로 서버 연결');
-});
+})
