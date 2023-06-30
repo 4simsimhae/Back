@@ -1,36 +1,45 @@
-module.exports.socketCheckLogin = async (socket) => {
+const jwt = require('jsonwebtoken');
+const { User } = require('../models');
+
+module.exports = async (socket, next) => {
     try {
-        console.log('socket token =', socket.handshake.query.token);
-        const authorization = socket.handshake.query.token;
-        // 토큰이 있는지 확인
-        if (!authorization) {
-            socket.user = null; // 로그인하지 않은 경우 user를 null로 설정합니다.
-            console.log('로그인이 필요한 서비스입니다.');
-            return;
+        console.log('query=', socket.handshake.query);
+        const Authorization = socket.handshake.query.token;
+        console.log('받은 토큰 =', Authorization);
+
+        socket.locals = {}; // 새로운 객체 생성
+        socket.locals.user = {}; // user 객체 정의
+
+        if (!Authorization) {
+            console.log('토큰 없음 --------------');
+            socket.locals.user = null;
+        } else {
+            console.log('토큰 있음 ------------------');
+
+            const [authType, authToken] = Authorization.split(' ');
+            console.log('Authorization =', authType, authToken);
+            console.log('토큰 형식 ---------------');
+
+            if (authType !== 'Bearer' || !authToken) {
+                console.log('토큰 Bearer 타입 아님');
+                socket.locals.user = null;
+            } else {
+                const { userId } = jwt.verify(
+                    authToken,
+                    process.env.JWT_SECRET
+                );
+                console.log('미들웨어 디코드한 유저 정보 =', userId);
+
+                const user = await User.findOne({ where: { userId } });
+                console.log('유저 정보를 소켓 로컬에 저장');
+                socket.locals.user = user;
+
+                console.log('넘기는유저아이디 =', socket.locals.user.userId);
+            }
         }
-
-        const [authType, authToken] = authorization.split(' ');
-        console.log('authorization =', authorization);
-        console.log('authType =', authType);
-        console.log('authToken =', authToken);
-        console.log('authType === Bearer인지 확인:', authType === 'Bearer');
-        console.log('auth1Token 존재 여부:', !!authToken);
-
-        // authType === Bearer인지 확인
-        if (authType !== 'Bearer' || !authToken) {
-            socket.user = null;
-            console.log('여기가 실행되는 거였냐?', socket.user);
-            return;
-        }
-
-        const { userId } = jwt.verify(authToken, process.env.JWT_SECRET);
-        console.log('userId =', userId);
-
-        // 나머지 로직 수행
-        const user = await User.findOne({ where: { userId } });
-        socket.user = user;
-        console.log('socket.user =', socket.user);
+        next(); // 다음 미들웨어 호출
     } catch (error) {
-        console.error('로그인 실패:', error);
+        console.error('로그인 체크 실패:', error);
+        next(new Error('로그인이 필요한 서비스입니다.')); // 에러 처리
     }
 };
