@@ -1,6 +1,6 @@
 const { UserInfo, Room, Chat } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
-// const { socketCheckLogin } = require('../middlewares/socketCheckLogin');
+const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
 module.exports = (io) => {
     let nickNames = [];
@@ -25,10 +25,16 @@ module.exports = (io) => {
         }
 
         // 토론자로 참여하기
-        socket.on('joinDebate', async (userId, roomId, done) => {
+        socket.on('joinDebate', async (roomId, done) => {
             try {
+                await socketCheckLogin(socket, (err) => {
+                    if (err) {
+                        return done(err.message);
+                    }
+                });
+                console.log('넘어온유저아이디=', socket.locals.user.userId);
                 const user = await UserInfo.findOne({
-                    where: { userId },
+                    where: { userId: socket.locals.user.userId },
                 });
                 console.log('1=', 1);
                 if (!user) {
@@ -36,7 +42,15 @@ module.exports = (io) => {
                     return;
                 }
 
+                if (user.kakaoId === 0) {
+                    console.log('kakaoId=', user.kakaoId);
+                    socket.emit('error', '로그인이 필요합니다.');
+                    return;
+                }
+
+                console.log('roomId=', roomId);
                 const room = await Room.findOne({ where: { roomId } });
+                console.log(room);
                 console.log('2=', 2);
                 if (!room) {
                     socket.emit('error', '입장할 수 있는 방이 없습니다.');
@@ -62,6 +76,7 @@ module.exports = (io) => {
                             done();
 
                             nickNames.push(nickName);
+                            console.log(nickNames);
                             //연결된 socket 전체에게 입장한 유저 nickNames 보내기
                             io.to(roomId).emit('roomJoined', nickNames);
 
@@ -103,10 +118,18 @@ module.exports = (io) => {
         });
 
         // 배심원으로 참가하기
-        socket.on('joinJuror', async (userId, roomId, done) => {
+        socket.on('joinJuror', async (roomId, done) => {
             try {
+                await socketCheckLogin(socket, (err) => {
+                    if (err) {
+                        return done(err.message);
+                    }
+                });
                 console.log('1=', 1);
-                const user = await UserInfo.findOne({ where: { userId } });
+                const user = await UserInfo.findOne({
+                    where: { userId: socket.locals.user.userId },
+                });
+                console.log(user);
 
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
@@ -114,6 +137,7 @@ module.exports = (io) => {
                 }
 
                 const room = await Room.findOne({ where: { roomId } });
+                console.log(room);
 
                 if (!room) {
                     socket.emit('error', '입장할 수 있는 방이 없습니다.');

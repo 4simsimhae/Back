@@ -48,34 +48,3 @@ module.exports = async (req, res, next) => {
         return res.status(403).json(response);
     }
 };
-
-// Socket.io에서 사용하는 미들웨어 함수
-module.exports.socketCheckLogin = async (socket, next) => {
-    try {
-        const authorization = socket.handshake.query.token;
-        // 토큰이 있는지 확인
-        if (!authorization) {
-            socket.user = null;
-        } else {
-            const [authType, authToken] = authorization.split(' ');
-            console.log(authorization, authType, authToken);
-
-            // authType === Bearer인지 확인
-            if (authType !== 'Bearer' || !authToken) {
-                socket.user = null;
-            } else {
-                const { userId } = jwt.verify(
-                    authToken,
-                    process.env.JWT_SECRET
-                );
-                const user = await User.findOne({ where: { userId } });
-
-                socket.user = user;
-            }
-        }
-        next();
-    } catch (error) {
-        console.error('로그인 실패:', error);
-        socket.emit('error', '로그인 실패');
-    }
-};
