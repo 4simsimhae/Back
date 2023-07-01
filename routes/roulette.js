@@ -70,27 +70,32 @@ async function callChatGPT(prompt) {
 // });
 
 //카테고리 별 주제 8개 받기
-router.post('/chatgpt', async (req, res) => {
+router.post('/chatgpt/:kategorieId', async (req, res) => {
     try {
-        const { kategorieName } = req.body;
-        //여기 아래에 있는 문장을 적절하게 수정하여
-        //우리가 원하는 형식의 질문을 받아야합니다.
+        const { kategorieId } = req.params;
+        const { kategorieName } = await Kategorie.findOne({
+            attributes: ['kategorieName'],
+            where: { kategorieId },
+        });
+
+        //GPT에 질문하기
         const [ kategorieName1, kategorieName2] = kategorieName.split(' ');
         const { ask } = {
-            ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
+            ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
         };
 
         const reply = await callChatGPT([{ role: 'user', content: ask }]);
-        
-        //응답 들어있는지 확인
-        const content = JSON.parse(reply.content);
-        const objectReply = Object.values(content);
-        console.log("wow = ", objectReply);
-        const roomlist = await Subject.findAll({
-            attributes: [
-                'subjectId'
-            ]
-        });
+        console.log(reply.content);
+
+        const subjectList = reply.content //+ subject.subjectList;
+        const roomlist = await Subject.update(
+            {
+                subjectList,
+            },
+            {
+                where: { kategorieId },
+            }
+        );
         res.json({ roomlist });
         //질문 몇개 DB에 저장하기 코드 추가예정
         
