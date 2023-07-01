@@ -40,7 +40,7 @@ async function callChatGPT(prompt) {
     }
 }
 
-// //chatGPT에 질문하기 (기본 테스트창)
+// //chatGPT에 질문하기 (기본 테스트창)//
 // router.get('/chatgpt', async (req, res) => {
 //     try {
 //         const { ask } = {
