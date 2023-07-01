@@ -107,7 +107,7 @@ server.listen(3000, () => {
 });
 
 
-//매일 자정에 chatGPT를 이용하여 새로운 주제 받기
+// 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
 // 요일 이름과 id값을 저장한 배열
 const days = [
     { id: 1, name: "Mon", toMinus: 7 },
@@ -122,30 +122,37 @@ const days = [
 days.forEach((day) => {
     cron.schedule(`0 0 0 * * ${day.name}`, async () => {
         try {
-            const kategorieId  = day.id;
-            const { kategorieName } = await Kategorie.findOne({
+            const list = [1, 2, 3, 4, 5, 6, 7, 8]
+            for (const data of list){
+                const kategorieId  = data;
+                const { kategorieName } = await Kategorie.findOne({
                 attributes: ['kategorieName'],
-                where: { kategorieId },
-        });
+                    where: { kategorieId },
+                });
 
-        //GPT에 질문하기
-        const [ kategorieName1, kategorieName2] = kategorieName.split(' ');
-        const { ask } = {
-            ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
-        };
+                //GPT에 질문하기
+                var [ kategorieName1, kategorieName2] = kategorieName.split('/');
+                if (!kategorieName2){
+                    kategorieName2 = ' ';
+                }
+                const { ask } = {
+                    ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
+                };
 
-        const reply = await callChatGPT([{ role: 'user', content: ask }]);
-        console.log(reply.content);
+                const reply = await callChatGPT([{ role: 'user', content: ask }]);
+                console.log(reply.content);
 
-        const subjectList = reply.content //+ subject.subjectList;
-        const roomlist = await Subject.update(
-            {
-                subjectList,
-            },
-            {
-                where: { kategorieId },
-            }
-        );
+                const subjectList = reply.content //+ subject.subjectList;
+                await Subject.update(
+                    {
+                        subjectList,
+                        updatedAt: new Date(),
+                    },
+                    {
+                        where: { kategorieId },
+                    }
+                );
+            } 
         } catch (err) {
             console.error(err);
         }
