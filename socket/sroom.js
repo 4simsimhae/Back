@@ -265,11 +265,14 @@ module.exports = (io) => {
             try {
                 const roomId = socket.roomId;
                 console.log('roomId =', roomId);
+
                 const room = await Room.findOne({
                     where: { roomId },
                 });
+
                 const kategorieId = room.kategorieId;
                 console.log('kategorieId =', kategorieId);
+
                 const subjectList = await Subject.findOne({
                     where: { kategorieId },
                     attributes: ['subjectList'],
@@ -280,14 +283,27 @@ module.exports = (io) => {
                     subjectList.dataValues.subjectList
                 );
                 console.log('allSubjects=', allSubjects);
-                const randomSubjects = getRandomSubjects(allSubjects, 8);
-                console.log('randomSubjects=', randomSubjects);
+
+                const randomSubject = room.randomSubjects || []; // 기존 값이 NULL인 경우 빈 배열로 초기화
+
+                // 배열값을 랜덤으로 배치 후 제일 앞에 8개 선정
+                const randomSubjectArr = getRandomSubjects(allSubjects, 8);
+                console.log('randomSubjects=', randomSubjectArr);
                 console.log('result=', result);
+
+                // Room 테이블의 randomSubjects 컬럼 업데이트
+                await Room.update(
+                    { randomSubjects: JSON.stringify(randomSubjectArr) },
+                    { where: { roomId } }
+                );
+
+                // 저장된 randomSubjects 값을 클라이언트로 전송
                 io.to(socket.roomId).emit(
                     'show_roulette',
-                    randomSubjects,
+                    randomSubjectArr,
                     result
-                ); // 주제 문자열 배열 전달
+                );
+
                 done();
             } catch (error) {
                 console.error('주제 룰렛 실행 실패:', error);
@@ -305,24 +321,36 @@ module.exports = (io) => {
                 const room = await Room.findOne({
                     where: { roomId },
                 });
-                const kategorieId = room.kategorieId;
-                console.log('roomId =', roomId);
-                console.log('kategorieId =', kategorieId);
-                const subjectList = await Subject.findOne({
-                    where: { kategorieId },
-                    attributes: ['subjectList'],
-                });
-                const allSubjects = JSON.parse(
-                    subjectList.dataValues.subjectList
+
+                let randomSubject = [];
+
+                if (room.randomSubjects) {
+                    randomSubject = JSON.parse(room.randomSubjects);
+                }
+
+                if (randomSubject.length === 0) {
+                    throw new Error('랜덤 주제가 없습니다.');
+                }
+
+                const randomSubjectIndex = Math.floor(
+                    Math.random() * randomSubject.length
                 );
-                const randomIndex = Math.floor(Math.random() * 8);
-                const randomSubject = allSubjects[randomIndex];
+                console.log('randomSubjectIndex=', randomSubjectIndex);
 
-                const subjectIndex = allSubjects.indexOf(randomSubject); // 선택된 주제의 인덱스
-                console.log('randomSubject=', randomSubject);
-                console.log('subjectIndex=', subjectIndex);
+                const selectedSubject = randomSubject[randomSubjectIndex]; // 선택된 주제
+                console.log('selectedSubject=', selectedSubject);
 
-                io.to(roomId).emit('start_roulette', subjectIndex);
+                await Room.update(
+                    { roomName: selectedSubject },
+                    { where: { roomId } }
+                );
+
+                const updatedRoom = await Room.findOne({
+                    where: { roomId },
+                });
+                console.log('roomName =', updatedRoom.roomName);
+
+                io.to(roomId).emit('start_roulette', randomSubjectIndex);
                 done();
             } catch (error) {
                 console.error('룰렛 실행 실패:', error);

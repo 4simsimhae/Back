@@ -30,6 +30,9 @@ module.exports = (sequelize, DataTypes) => {
             roomName: {
                 type: DataTypes.STRING,
             },
+            randomSubjects: {
+                type: DataTypes.STRING,
+            },
             debater: {
                 type: DataTypes.INTEGER,
             },
