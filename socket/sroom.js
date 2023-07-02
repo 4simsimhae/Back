@@ -3,7 +3,7 @@ const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
 module.exports = (io) => {
-    let nickNames = {};
+    const nickNames = {};
     io.on('connection', (socket) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
@@ -262,11 +262,16 @@ module.exports = (io) => {
         // 게임 시작
         socket.on('show_roulette', async (result, done) => {
             try {
-                // console.log('kategorieId=', socket.kategorieId);
-                // console.log('socket.handshake=', socket.handshake);
-                const kategorieId = '1';
+                const roomId = socket.roomId;
+                console.log('roomId =', roomId);
+                const room = await Room.findOne({
+                    where: { roomId },
+                });
+                const kategorieId = room.kategorieId;
+                console.log('kategorieId =', kategorieId);
                 const subjectList = await Subject.findOne({
                     where: { kategorieId },
+                    attributes: ['subjectList'],
                 });
                 console.log('subjectList=', subjectList);
 
@@ -281,7 +286,7 @@ module.exports = (io) => {
                     'show_roulette',
                     randomSubjects,
                     result
-                );
+                ); // 주제 문자열 배열 전달
                 done();
             } catch (error) {
                 console.error('주제 룰렛 실행 실패:', error);
@@ -289,36 +294,50 @@ module.exports = (io) => {
             }
         });
 
-        // socket.on('start_roulette', async (roomNumber) => {
-        //     try {
-        //         const kategorieId = '1';
-        //         const subjectList = await Subject.findOne({
-        //             where: { kategorieId },
-        //         });
-        //         const allSubjects = JSON.parse(
-        //             subjectList.dataValues.subjectList
-        //         );
-        //         const randomSubject = getRandomSubjects(allSubjects, 1)[0];
-
-        //         // 주제를 방 제목으로 설정
-        //         const room = await Room.findOne({
-        //             where: { roomId: roomNumber },
-        //         });
-        //         room.roomName = randomSubject;
-        //         await room.save();
-
-        //         // 방 제목을 클라이언트에 전달
-        //         io.to(roomNumber).emit('roulette_result', randomSubject);
-        //     } catch (error) {
-        //         console.error('룰렛 실행 실패:', error);
-        //         socket.emit('error', '룰렛 실행에 실패했습니다.');
-        //     }
-        // });
-
         function getRandomSubjects(subjects, count) {
             const shuffled = subjects.sort(() => 0.5 - Math.random()); // 배열을 랜덤하게 섞음
             return shuffled.slice(0, count); // 앞에서부터 count 개수만큼의 요소 반환
         }
+
+        socket.on('start_roulette', async (roomId, done) => {
+            try {
+                const room = await Room.findOne({
+                    where: { roomId },
+                });
+                const kategorieId = room.kategorieId;
+                console.log('roomId =', roomId);
+                console.log('kategorieId =', kategorieId);
+                const subjectList = await Subject.findOne({
+                    where: { kategorieId },
+                    attributes: ['subjectList'],
+                });
+                const allSubjects = JSON.parse(
+                    subjectList.dataValues.subjectList
+                );
+                const randomIndex = Math.floor(Math.random() * 8);
+                const randomSubject = allSubjects[randomIndex];
+
+                const subjectIndex = allSubjects.indexOf(randomSubject); // 선택된 주제의 인덱스
+                console.log('randomSubject=', randomSubject);
+                console.log('subjectIndex=', subjectIndex);
+
+                io.to(roomId).emit('start_roulette', subjectIndex);
+                done();
+            } catch (error) {
+                console.error('룰렛 실행 실패:', error);
+                socket.emit('error', '룰렛 실행에 실패했습니다.');
+            }
+        });
+
+        socket.on('close_result', async (result, roomId, done) => {
+            io.to(roomId).emit('close_result', result);
+            done();
+        });
+
+        socket.on('close_roulette', async (result, roomId, done) => {
+            io.to(roomId).emit('close_roulette', result);
+            done();
+        });
 
         socket.on('startDebate', async (roomId) => {
             try {
