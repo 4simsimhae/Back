@@ -26,10 +26,16 @@ npx sequelize init
 내 프로젝트 폴더 이름
 ├── config
 │   └── config.js
+│
 ├── middlewares
-│   └── checklogin.js
-│   └── confirm.js
+│   ├── checklogin.js
+│   ├── confirm.js
+│   ├── randomName.js
+│   ├── socketCheckLogin.js
+│   └── socketRandomName.js
+│
 ├── migrations
+│
 ├── models
 │   ├── chat.js
 │   ├── index.js
@@ -39,17 +45,28 @@ npx sequelize init
 │   ├── user.js
 │   └── userinfo.js
 │
+├── passport
+│   └── KakaoStrategy.js
+│
 ├── routes
+│   ├── chat.js
+│   ├── index.js
+│   ├── room.js
+│   └── roulette.js
+│
+├── socket
 │   ├── chat.js
 │   ├── debate.js
 │   ├── index.js
-│   ├── room.js
-│   ├── roulette.js
-│   └── user.js
+│   └── sroom.js
 │
+├── .env
 ├── app.js
+├── Dockerfile
 ├── package-lock.json
-└── package.json
+├── package.json
+├── README.md
+└── swagger.js
 ```
 
 <!-- npm install --save-dev sequelize-cli@latest -->
@@ -63,7 +80,7 @@ npx sequelize model:generate --name User --attributes userName:string,userEmail:
 npx sequelize model:generate --name UserInfo --attributes userId:integer,roomId:integer,nickName:string,like:integer,hate:integer,questionMark:integer,debater:boolean
 npx sequelize model:generate --name Kategorie --attributes kategorieName:string,kategorieImage:string
 npx sequelize model:generate --name Room --attributes kategorieName:string,roomName:string,debater:integer,panel:integer
-npx sequelize model:generate --name Subject --attributes kategorieName:string,subjectList:string
+npx sequelize model:generate --name Subject --attributes kategorieId:integer,kategorieName:string,subjectList:string
 npx sequelize model:generate --name Chat --attributes roomId:integer,chatList:string
 ```
 

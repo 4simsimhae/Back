@@ -8,6 +8,7 @@ module.exports = (io) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
         });
+        // 룸리스트
 
         // 방인원 체크
         async function updateRoomCount(roomId) {
