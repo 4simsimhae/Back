@@ -21,6 +21,11 @@ module.exports = (io) => {
                     return;
                 }
 
+                if (socket.userId === debater) {
+                    socket.emit('error', '본인에게 좋아요를 누를수 없습니다.');
+                    return;
+                }
+
                 // 좋아요 수 증가
                 debater.like += 1;
                 await debater.save();
