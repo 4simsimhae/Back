@@ -3,6 +3,46 @@ const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
 module.exports = (io) => {
+    io.of('/roomList').on('connection', (socket) => {
+        console.log('roomList 생성');
+        socket.on('update', async (kategorieId) => {
+            try {
+                // 잘못된 kategorieId
+                if (kategorieId > 8 || kategorieId < 1) {
+                    const response = new response(
+                        403,
+                        '해당 카테고리를 찾을 수 없습니다.'
+                    );
+                    socket.emit('error', response); // 수정: 에러를 클라이언트에게 보냄
+                    return;
+                }
+
+                const roomList = await Room.findAll({
+                    attributes: [
+                        'roomId',
+                        'KategorieName',
+                        'roomName',
+                        'debater',
+                        'panel',
+                    ],
+                    where: { kategorieId },
+                    // order: [],
+                });
+
+                const response = new response(200, '', roomList);
+                socket.emit('update_roomList', response); // 수정: 결과를 클라이언트에게 보냄
+            } catch (error) {
+                const response = new response(
+                    500,
+                    '예상하지 못한 서버 문제가 발생했습니다.'
+                );
+                socket.emit('error', response); // 수정: 에러를 클라이언트에게 보냄
+            }
+        });
+    });
+
+    // 프론트로 보내줄꺼 update_roomList
+
     const nickNames = {};
     io.on('connection', (socket) => {
         socket.onAny((event) => {
