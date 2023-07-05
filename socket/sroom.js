@@ -69,18 +69,6 @@ module.exports = (io) => {
         // 토론자로 참여하기
         socket.on('joinDebate', async (roomId, kategorieId, done) => {
             try {
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
-
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
                         return done(err.message);
@@ -166,6 +154,19 @@ module.exports = (io) => {
                 });
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
+
+                const roomList = await Room.findAll({
+                    attributes: [
+                        'roomId',
+                        'KategorieName',
+                        'roomName',
+                        'debater',
+                        'panel',
+                    ],
+                    where: { kategorieId },
+                    // order: [],
+                });
+
                 io.of('/roomList')
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
@@ -210,18 +211,6 @@ module.exports = (io) => {
         // 배심원으로 참가하기
         socket.on('joinJuror', async (roomId, kategorieId, done) => {
             try {
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
-
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
                         return done(err.message);
@@ -294,6 +283,19 @@ module.exports = (io) => {
                 });
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
+
+                const roomList = await Room.findAll({
+                    attributes: [
+                        'roomId',
+                        'KategorieName',
+                        'roomName',
+                        'debater',
+                        'panel',
+                    ],
+                    where: { kategorieId },
+                    // order: [],
+                });
+
                 io.of('/roomList')
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
@@ -395,18 +397,6 @@ module.exports = (io) => {
 
         socket.on('start_roulette', async (roomId, kategorieId, done) => {
             try {
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
-
                 const room = await Room.findOne({
                     where: { roomId },
                 });
@@ -438,6 +428,18 @@ module.exports = (io) => {
                     where: { roomId },
                 });
                 console.log('roomName =', updatedRoom.roomName);
+
+                const roomList = await Room.findAll({
+                    attributes: [
+                        'roomId',
+                        'KategorieName',
+                        'roomName',
+                        'debater',
+                        'panel',
+                    ],
+                    where: { kategorieId },
+                    // order: [],
+                });
 
                 io.of('/roomList')
                     .to(kategorieId)
