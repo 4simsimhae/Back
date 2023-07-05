@@ -132,6 +132,8 @@ module.exports = (io) => {
                         user.debater = 1;
                         user.roomId = room.roomId;
                         user.nickName = nickName;
+
+                        //방장 권한 주기
                         const userExists = await UserInfo.findOne({
                             where: {
                                 roomId: room.roomId,
