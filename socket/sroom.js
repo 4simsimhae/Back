@@ -126,12 +126,24 @@ module.exports = (io) => {
                 }
 
                 await new Promise((resolve) => {
-                    socketRandomName(socket, () => {
+                    socketRandomName(socket, async () => {
                         const nickName = socket.locals.random;
                         socket.nickName = nickName;
                         user.debater = 1;
                         user.roomId = room.roomId;
                         user.nickName = nickName;
+                        const userExists = await UserInfo.findOne({
+                            where: {
+                                roomId: room.roomId,
+                                host: 1,
+                            },
+                        });
+
+                        if (userExists) {
+                            user.host = 0;
+                        } else {
+                            user.host = 1;
+                        }
 
                         user.save().then(() => {
                             done();
@@ -168,6 +180,7 @@ module.exports = (io) => {
                     nickNames[roomId].nickNames = nickNames[
                         roomId
                     ].nickNames.filter((item) => item !== nickName);
+                    user.host = 0;
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -247,6 +260,7 @@ module.exports = (io) => {
                     socketRandomName(socket, () => {
                         const nickName = socket.locals.random;
                         socket.nickName = nickName;
+                        user.host = 0;
                         user.debater = 0;
                         user.roomId = room.roomId;
                         user.nickName = nickName;
@@ -288,6 +302,7 @@ module.exports = (io) => {
                         roomId
                     ].nickNames.filter((item) => item !== nickName);
                     console.log('닉네임리스트2 =', nickNames[roomId].nickNames);
+                    user.host = 0;
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -324,12 +339,12 @@ module.exports = (io) => {
         // 게임 시작
         socket.on('show_roulette', async (result, kategorieId, done) => {
             try {
-                // const roomId = socket.roomId;
-                // console.log('roomId =', roomId);
+                const roomId = socket.roomId;
+                console.log('roomId =', roomId);
 
-                // const room = await Room.findOne({
-                //     where: { roomId },
-                // });
+                const room = await Room.findOne({
+                    where: { roomId },
+                });
 
                 // const kategorieId = room.kategorieId;
                 // console.log('kategorieId =', kategorieId);

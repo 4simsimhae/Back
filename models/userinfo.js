@@ -41,8 +41,11 @@ module.exports = (sequelize, DataTypes) => {
             questionMark: {
                 type: DataTypes.INTEGER,
             },
+            host: {
+                type: DataTypes.INTEGER,
+            },
             debater: {
-                type: DataTypes.BOOLEAN,
+                type: DataTypes.INTEGER,
             },
             createdAt: {
                 allowNull: false,
