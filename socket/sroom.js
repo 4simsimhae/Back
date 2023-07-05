@@ -2,6 +2,15 @@ const { UserInfo, Room, User, Chat, Subject } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
+const getRoomList = async (kategorieId) => {
+    const roomList = await Room.findAll({
+        attributes: ['roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+        where: { kategorieId },
+        // order: [],
+    });
+    return roomList;
+};
+
 module.exports = (io) => {
     io.of('/roomList').on('connection', (socket) => {
         console.log('roomList 생성');
@@ -18,17 +27,8 @@ module.exports = (io) => {
                     return;
                 }
 
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
+                await socket.join(kategorieId);
+                const roomList = await getRoomList(kategorieId);
 
                 // const response = new response(200, '', roomList);
                 socket.emit('update_roomList', roomList); // 수정: 결과를 클라이언트에게 보냄
@@ -155,17 +155,7 @@ module.exports = (io) => {
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
+                const roomList = await getRoomList(kategorieId);
 
                 io.of('/roomList')
                     .to(kategorieId)
@@ -198,6 +188,7 @@ module.exports = (io) => {
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
+                    const roomList = await getRoomList(kategorieId);
                     io.of('/roomList')
                         .to(kategorieId)
                         .emit('update_roomList', roomList);
@@ -284,17 +275,7 @@ module.exports = (io) => {
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
+                const roomList = await getRoomList(kategorieId);
 
                 io.of('/roomList')
                     .to(kategorieId)
@@ -327,6 +308,7 @@ module.exports = (io) => {
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
+                    const roomList = await getRoomList(kategorieId);
                     io.of('/roomList')
                         .to(kategorieId)
                         .emit('update_roomList', roomList);
@@ -429,17 +411,7 @@ module.exports = (io) => {
                 });
                 console.log('roomName =', updatedRoom.roomName);
 
-                const roomList = await Room.findAll({
-                    attributes: [
-                        'roomId',
-                        'KategorieName',
-                        'roomName',
-                        'debater',
-                        'panel',
-                    ],
-                    where: { kategorieId },
-                    // order: [],
-                });
+                const roomList = await getRoomList(kategorieId);
 
                 io.of('/roomList')
                     .to(kategorieId)
