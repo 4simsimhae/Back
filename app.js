@@ -102,8 +102,8 @@ app.get('/', (req, res) => {
 
 socketHandlers(io);
 
-server.listen(3001, () => {
-    console.log('3001 포트로 서버 연결');
+server.listen(3000, () => {
+    console.log('3000 포트로 서버 연결');
 });
 
 // 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
