@@ -6,15 +6,15 @@ module.exports = async (socket, next) => {
             'https://nickname.hwanmoo.kr/?format=json&count=2'
         );
         const newNickName = html.data.words[0];
-        const splitname = newNickName.split(' ');
-        const nickName = splitname[splitname.length - 1];
-        console.log('nickName = ', nickName);
+        // const splitname = newNickName.split(' ');
+        // const nickName = splitname[splitname.length - 1];
+        console.log('newNickName = ', newNickName);
         console.log('-------------');
         if (!socket.locals) {
             socket.locals = {};
         }
         console.log('43 =', socket.locals.random);
-        socket.locals.random = nickName;
+        socket.locals.random = newNickName;
         console.log('44 =', socket.locals.random);
         next();
     } catch (error) {

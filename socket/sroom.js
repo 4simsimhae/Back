@@ -2,7 +2,48 @@ const { UserInfo, Room, User, Chat, Subject } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 
+const getRoomList = async (kategorieId) => {
+    const roomList = await Room.findAll({
+        attributes: ['roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
+        where: { kategorieId },
+        // order: [],
+    });
+    return roomList;
+};
+
 module.exports = (io) => {
+    io.of('/roomList').on('connection', (socket) => {
+        console.log('roomList 생성');
+        socket.on('update', async (kategorieId) => {
+            try {
+                console.log('kategorieId =', kategorieId);
+                // 잘못된 kategorieId
+                if (kategorieId > 8 || kategorieId < 1) {
+                    const response = new response(
+                        403,
+                        '해당 카테고리를 찾을 수 없습니다.'
+                    );
+                    socket.emit('error', response); // 수정: 에러를 클라이언트에게 보냄
+                    return;
+                }
+
+                await socket.join(kategorieId);
+                const roomList = await getRoomList(kategorieId);
+
+                // const response = new response(200, '', roomList);
+                socket.emit('update_roomList', roomList); // 수정: 결과를 클라이언트에게 보냄
+            } catch (error) {
+                const response = new response(
+                    500,
+                    '예상하지 못한 서버 문제가 발생했습니다.'
+                );
+                socket.emit('error', response); // 수정: 에러를 클라이언트에게 보냄
+            }
+        });
+    });
+
+    // 프론트로 보내줄꺼 update_roomList
+
     const nickNames = {};
     io.on('connection', (socket) => {
         socket.onAny((event) => {
@@ -26,7 +67,7 @@ module.exports = (io) => {
         }
 
         // 토론자로 참여하기
-        socket.on('joinDebate', async (roomId, done) => {
+        socket.on('joinDebate', async (roomId, kategorieId, done) => {
             try {
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
@@ -85,12 +126,26 @@ module.exports = (io) => {
                 }
 
                 await new Promise((resolve) => {
-                    socketRandomName(socket, () => {
+                    socketRandomName(socket, async () => {
                         const nickName = socket.locals.random;
                         socket.nickName = nickName;
                         user.debater = 1;
                         user.roomId = room.roomId;
                         user.nickName = nickName;
+
+                        //방장 권한 주기
+                        const userExists = await UserInfo.findOne({
+                            where: {
+                                roomId: room.roomId,
+                                host: 1,
+                            },
+                        });
+
+                        if (userExists) {
+                            user.host = 0;
+                        } else {
+                            user.host = 1;
+                        }
 
                         user.save().then(() => {
                             done();
@@ -114,6 +169,12 @@ module.exports = (io) => {
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
+                const roomList = await getRoomList(kategorieId);
+
+                io.of('/roomList')
+                    .to(kategorieId)
+                    .emit('update_roomList', roomList);
+
                 console.log('4=', 4);
                 socket.on('disconnecting', async () => {
                     // 방 나가기전에 user정보 초기화
@@ -121,6 +182,7 @@ module.exports = (io) => {
                     nickNames[roomId].nickNames = nickNames[
                         roomId
                     ].nickNames.filter((item) => item !== nickName);
+                    user.host = 0;
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -141,6 +203,10 @@ module.exports = (io) => {
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
+                    const roomList = await getRoomList(kategorieId);
+                    io.of('/roomList')
+                        .to(kategorieId)
+                        .emit('update_roomList', roomList);
                 });
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
@@ -149,7 +215,7 @@ module.exports = (io) => {
         });
 
         // 배심원으로 참가하기
-        socket.on('joinJuror', async (roomId, done) => {
+        socket.on('joinJuror', async (roomId, kategorieId, done) => {
             try {
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
@@ -196,6 +262,7 @@ module.exports = (io) => {
                     socketRandomName(socket, () => {
                         const nickName = socket.locals.random;
                         socket.nickName = nickName;
+                        user.host = 0;
                         user.debater = 0;
                         user.roomId = room.roomId;
                         user.nickName = nickName;
@@ -224,6 +291,12 @@ module.exports = (io) => {
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
+                const roomList = await getRoomList(kategorieId);
+
+                io.of('/roomList')
+                    .to(kategorieId)
+                    .emit('update_roomList', roomList);
+
                 socket.on('disconnecting', async () => {
                     //socket(방) 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
@@ -231,6 +304,7 @@ module.exports = (io) => {
                         roomId
                     ].nickNames.filter((item) => item !== nickName);
                     console.log('닉네임리스트2 =', nickNames[roomId].nickNames);
+                    user.host = 0;
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
@@ -251,6 +325,10 @@ module.exports = (io) => {
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
+                    const roomList = await getRoomList(kategorieId);
+                    io.of('/roomList')
+                        .to(kategorieId)
+                        .emit('update_roomList', roomList);
                 });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
@@ -261,7 +339,7 @@ module.exports = (io) => {
         //
 
         // 게임 시작
-        socket.on('show_roulette', async (result, done) => {
+        socket.on('show_roulette', async (result, kategorieId, done) => {
             try {
                 const roomId = socket.roomId;
                 console.log('roomId =', roomId);
@@ -270,8 +348,8 @@ module.exports = (io) => {
                     where: { roomId },
                 });
 
-                const kategorieId = room.kategorieId;
-                console.log('kategorieId =', kategorieId);
+                // const kategorieId = room.kategorieId;
+                // console.log('kategorieId =', kategorieId);
 
                 const subjectList = await Subject.findOne({
                     where: { kategorieId },
@@ -316,7 +394,7 @@ module.exports = (io) => {
             return shuffled.slice(0, count); // 앞에서부터 count 개수만큼의 요소 반환
         }
 
-        socket.on('start_roulette', async (roomId, done) => {
+        socket.on('start_roulette', async (roomId, kategorieId, done) => {
             try {
                 const room = await Room.findOne({
                     where: { roomId },
@@ -350,6 +428,11 @@ module.exports = (io) => {
                 });
                 console.log('roomName =', updatedRoom.roomName);
 
+                const roomList = await getRoomList(kategorieId);
+
+                io.of('/roomList')
+                    .to(kategorieId)
+                    .emit('update_roomList', roomList);
                 io.to(roomId).emit('start_roulette', randomSubjectIndex);
                 done();
             } catch (error) {
