@@ -11,6 +11,7 @@ const getRoomList = async (kategorieId) => {
     return roomList;
 };
 
+//빈방 삭제
 const deleteEmptyRooms = async () => {
     try {
         // 빈 방 조회
@@ -24,9 +25,9 @@ const deleteEmptyRooms = async () => {
         // 빈 방 삭제
         await Promise.all(emptyRooms.map((room) => room.destroy()));
 
-        console.log('Empty rooms have been deleted.');
+        console.log('빈방을 삭제 하였습니다.');
     } catch (error) {
-        console.error('Failed to delete empty rooms:', error);
+        console.error('빈방 삭제에 실패 하였습니다.');
     }
 };
 
