@@ -6,7 +6,7 @@ const getRoomList = async (kategorieId) => {
     const roomList = await Room.findAll({
         attributes: ['roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
         where: { kategorieId },
-        // order: [],
+        order: [['createdAt', 'DESC']],
     });
     return roomList;
 };
