@@ -11,8 +11,28 @@ const getRoomList = async (kategorieId) => {
     return roomList;
 };
 
+const deleteEmptyRooms = async () => {
+    try {
+        // 빈 방 조회
+        const emptyRooms = await Room.findAll({
+            where: {
+                debater: 0,
+                panel: 0,
+            },
+        });
+
+        // 빈 방 삭제
+        await Promise.all(emptyRooms.map((room) => room.destroy()));
+
+        console.log('Empty rooms have been deleted.');
+    } catch (error) {
+        console.error('Failed to delete empty rooms:', error);
+    }
+};
+
 module.exports = (io) => {
     io.of('/roomList').on('connection', (socket) => {
+        deleteEmptyRooms();
         console.log('roomList 생성');
         socket.on('update', async (kategorieId) => {
             try {
@@ -204,6 +224,7 @@ module.exports = (io) => {
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
+                    await deleteEmptyRooms();
                     io.of('/roomList')
                         .to(kategorieId)
                         .emit('update_roomList', roomList);
@@ -326,6 +347,7 @@ module.exports = (io) => {
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
+                    await deleteEmptyRooms();
                     io.of('/roomList')
                         .to(kategorieId)
                         .emit('update_roomList', roomList);
