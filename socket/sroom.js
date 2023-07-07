@@ -41,22 +41,22 @@ module.exports = (io) => {
         console.log('roomList 생성');
         socket.on('update', async (kategorieId) => {
             try {
-                const clientIP = socket.handshake.address;
-                console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
+                // const clientIP = socket.handshake.address;
+                // console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
 
-                // 이미 접속된 IP 주소인지 확인
-                if (connectedIPs.has(clientIP)) {
-                    console.log(
-                        '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
-                    );
-                    socket.emit('error', '이미 접속된 IP 주소입니다.');
-                    socket.disconnect(true); // 클라이언트의 연결을 강제로 끊습니다.
-                    return;
-                }
+                // // 이미 접속된 IP 주소인지 확인
+                // if (connectedIPs.has(clientIP)) {
+                //     console.log(
+                //         '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
+                //     );
+                //     socket.emit('error', '이미 접속된 IP 주소입니다.');
+                //     socket.disconnect(true); // 클라이언트의 연결을 강제로 끊습니다.
+                //     return;
+                // }
 
-                // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
-                connectedIPs.add(clientIP);
-                console.log('connectedIPs=', connectedIPs);
+                // // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
+                // connectedIPs.add(clientIP);
+                // console.log('connectedIPs=', connectedIPs);
 
                 console.log('kategorieId =', kategorieId);
                 // 잘못된 kategorieId
@@ -301,6 +301,23 @@ module.exports = (io) => {
         // 배심원으로 참가하기
         socket.on('joinJuror', async (roomId, kategorieId, done) => {
             try {
+                // const clientIP = socket.handshake.address;
+                // console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
+
+                // // 이미 접속된 IP 주소인지 확인
+                // if (connectedIPs.has(clientIP)) {
+                //     console.log(
+                //         '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
+                //     );
+                //     socket.emit('error', '이미 접속된 IP 주소입니다.');
+                //     socket.disconnect(true); // 클라이언트의 연결을 강제로 끊습니다.
+                //     return;
+                // }
+
+                // // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
+                // connectedIPs.add(clientIP);
+                // console.log('connectedIPs=', connectedIPs);
+
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
                         return done(err.message);
