@@ -44,6 +44,7 @@ const io = require('socket.io')(server, {
         ],
         credentials: true,
     },
+    ipv6: false,
 });
 
 const socketHandlers = require('./socket');

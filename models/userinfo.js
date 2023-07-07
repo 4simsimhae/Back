@@ -32,6 +32,9 @@ module.exports = (sequelize, DataTypes) => {
             nickName: {
                 type: DataTypes.STRING,
             },
+            avatar: {
+                type: DataTypes.STRING,
+            },
             like: {
                 type: DataTypes.INTEGER,
             },
