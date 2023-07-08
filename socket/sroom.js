@@ -6,6 +6,33 @@ const socketRandomAvatar = require('../middlewares/socketRandomAvatar');
 // // 중복 접속 방지
 // const connectedIPs = new Set();
 
+// 접속 유저 IP 체크
+const ipCheckFunc = async (socket) => {
+    const clientIP = socket.handshake.address;
+    console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
+
+    // 이미 접속된 IP 주소인지 확인
+    if (connectedIPs.has(clientIP)) {
+        console.log('이미 접속된 IP 주소입니다. 접속을 거부합니다.');
+        socket.emit('error', '이미 접속된 IP 주소입니다.');
+        socket.disconnect(true); // 클라이언트의 연결을 강제로 끊습니다.
+        return;
+    }
+
+    // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
+    connectedIPs.add(clientIP);
+    console.log('connectedIPs=', connectedIPs);
+};
+
+// 유저 IP 정보 삭제
+const ipInfoDeleteFunc = async (socket) => {
+    const clientIP = socket.request.connection.remoteAddress;
+    await connectedIPs.delete(clientIP);
+    console.log('클라이언트가 연결을 종료했습니다. IP 주소:', clientIP);
+
+    console.log('connectedIPs=', connectedIPs);
+};
+
 const getRoomList = async (kategorieId) => {
     const roomList = await Room.findAll({
         attributes: ['roomId', 'KategorieName', 'roomName', 'debater', 'panel'],
@@ -37,27 +64,15 @@ const deleteEmptyRooms = async () => {
 
 module.exports = (io) => {
     io.of('/roomList').on('connection', (socket) => {
+        // 빈방 삭제
         deleteEmptyRooms();
-        console.log('roomList 생성');
+
+        // // 접속 유저 IP 체크
+        // ipCheckFunc();
+
+        // 룸리스트 전달
         socket.on('update', async (kategorieId) => {
             try {
-                // const clientIP = socket.handshake.address;
-                // console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
-
-                // // 이미 접속된 IP 주소인지 확인
-                // if (connectedIPs.has(clientIP)) {
-                //     console.log(
-                //         '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
-                //     );
-                //     socket.emit('error', '이미 접속된 IP 주소입니다.');
-                //     socket.disconnect(true); // 클라이언트의 연결을 강제로 끊습니다.
-                //     return;
-                // }
-
-                // // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
-                // connectedIPs.add(clientIP);
-                // console.log('connectedIPs=', connectedIPs);
-
                 console.log('kategorieId =', kategorieId);
                 // 잘못된 kategorieId
                 if (kategorieId > 8 || kategorieId < 1) {
@@ -84,16 +99,15 @@ module.exports = (io) => {
         });
     });
 
-    // 프론트로 보내줄꺼 update_roomList
-
-    const nickNames = {};
+    // avatars,data 초기화
     const avatars = {};
     let data = [];
+
+    // socket connection
     io.on('connection', (socket) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
         });
-        // 룸리스트
 
         // 방인원 체크
         async function updateRoomCount(roomId) {
@@ -113,6 +127,10 @@ module.exports = (io) => {
         // 토론자로 참여하기
         socket.on('joinDebate', async (roomId, kategorieId, done) => {
             try {
+                // // ip check
+                // ipCheckFunc();
+
+                // socketCheckLogin 미들웨어
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
                         return done(err.message);
@@ -129,7 +147,7 @@ module.exports = (io) => {
                         },
                     ],
                 });
-                console.log('1=', 1);
+
                 if (!user) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
                     return;
@@ -137,33 +155,21 @@ module.exports = (io) => {
 
                 console.log('kakaoId=', user.user.kakaoId);
                 if (user.user.kakaoId == 0) {
-                    // console.log('조건이 일치함');
-                    // console.log('kakaoId=', user.user.kakaoId);
-                    // socket.emit('error', '로그인이 필요합니다.');
-                    // console.log('Socket Event: error');
                     done('msg');
                     return;
                 }
 
-                console.log('roomId=', roomId);
+                // roomId 조회 후 room 생성
                 const room = await Room.findOne({ where: { roomId } });
-                console.log('2=', 2);
+
                 if (!room) {
                     socket.emit('error', '입장할 수 있는 방이 없습니다.');
                     return;
                 }
 
+                // 방에 입장
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
-
-                // 방이 존재하지 않을 경우 방과 nickNames를 초기화한 빈 배열로 생성
-                if (!nickNames[roomId]) {
-                    nickNames[roomId] = { nickNames: [] };
-                }
-
-                if (!Array.isArray(nickNames[roomId].nickNames)) {
-                    nickNames[roomId].nickNames = [];
-                }
 
                 if (!avatars[roomId]) {
                     avatars[roomId] = { avatars: [] };
@@ -173,6 +179,7 @@ module.exports = (io) => {
                     socket.locals = {};
                 }
 
+                // 랜덤 아바타 미들웨어
                 await socketRandomAvatar(socket, async () => {
                     const userId = socket.locals.user.userId;
                     const userInfo = await UserInfo.findOne({
@@ -185,6 +192,7 @@ module.exports = (io) => {
                     return;
                 });
 
+                // 랜덤 닉네임 미들웨어
                 await new Promise((resolve) => {
                     socketRandomName(socket, async () => {
                         const nickName = socket.locals.random;
@@ -201,70 +209,56 @@ module.exports = (io) => {
                             },
                         });
 
+                        // 방장이 이미 있을시 host = 0, 방장이 없을시 host = 1
                         if (userExists) {
                             user.host = 0;
                         } else {
                             user.host = 1;
                         }
 
+                        // userInfo save
                         user.save().then(() => {
                             done();
 
-
+                            // userData 생성
                             const userData = {
                                 nickName: user.nickName,
                                 avatar: user.avatar,
                                 host: user.host,
-                                debater: user.debater
+                                debater: user.debater,
                             };
 
+                            // 유저 data List 만들기
                             data.push(userData);
-                            console.log("userdata =", data);
+                            console.log('userData =', data);
 
-
-                            // nickNames[roomId].nickNames = [
-                            //     ...nickNames[roomId].nickNames,
-                            //     nickName,
-                            // ];
-                            // console.log(nickNames[roomId].nickNames);
-
-                            // avatars[roomId].avatars = [
-                            //     ...avatars[roomId].avatars,
-                            //     socket.locals.avatar,
-                            // ];
-                            // console.log(
-                            //     'avatars[roomId].avatars=',
-                            //     avatars[roomId].avatars
-                            // );
-
-                            // 연결된 socket 전체에게 입장한 유저 nickNames 보내기
+                            // 연결된 socket 전체에게 입장한 유저 data 보내기
                             io.to(roomId).emit('roomJoined', data);
 
                             resolve();
                         });
-                        console.log('3=', 3);
                     });
                 });
 
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
+                // roomList 갱신
                 const roomList = await getRoomList(kategorieId);
 
+                // 룸리스트 네임스페이스로 전달
                 io.of('/roomList')
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
 
-                console.log('4=', 4);
-
-                socket.on("leave_room", async (done) => {
+                // 방 나가기
+                socket.on('leave_room', async (done) => {
                     const nickName = socket.nickName;
 
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
-                    data = data.filter((userData) => userData.nickName !== nickName);
-
-                    // 데이터 저장
-
+                    data = data.filter(
+                        (userData) => userData.nickName !== nickName
+                    );
 
                     // 유저정보 초기화
                     user.host = 0;
@@ -280,19 +274,21 @@ module.exports = (io) => {
                     // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
 
-                    // 방 퇴장 후 남아있는 nickName 리스트 보내기
+                    // 방 퇴장 후 남아있는 userData 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
 
-                    //방인원 체크후 db업데이트
+                    // 방 인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
 
-                    //빈방 삭제
+                    // 빈방 삭제
                     await deleteEmptyRooms();
 
                     // 네임스페이스에 룸리스트 보내기
-                    io.of('/roomList').to(kategorieId).emit('update_roomList', roomList);
+                    io.of('/roomList')
+                        .to(kategorieId)
+                        .emit('update_roomList', roomList);
 
                     done();
 
@@ -300,57 +296,37 @@ module.exports = (io) => {
                     socket.disconnect();
                 });
 
+                // socket disconnecting
                 socket.on('disconnecting', async () => {
-
                     const nickName = socket.nickName;
 
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
-                    data = data.filter((userData) => userData.nickName !== nickName);
+                    data = data.filter(
+                        (userData) => userData.nickName !== nickName
+                    );
 
-                    // // ip연결 정보 삭제
-                    // const clientIP = socket.request.connection.remoteAddress;
-                    // await connectedIPs.delete(clientIP);
-                    // console.log(
-                    //     '클라이언트가 연결을 종료했습니다. IP 주소:',
-                    //     clientIP
-                    // );
-
-                    // console.log('connectedIPs=', connectedIPs);
-                })
+                    // // 유저 IP 정보 삭제
+                    // ipInfoDeleteFunc();
+                });
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
                 socket.emit('error', '토론자 참여 처리에 실패했습니다.');
             }
-        })
-
-
+        });
 
         // 배심원으로 참가하기
         socket.on('joinJuror', async (roomId, kategorieId, done) => {
             try {
-                // const clientIP = socket.handshake.address;
-                // console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
+                // // ip check
+                // ipCheckFunc();
 
-                // // 이미 접속된 IP 주소인지 확인
-                // if (connectedIPs.has(clientIP)) {
-                //     console.log(
-                //         '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
-                //     );
-                //     socket.emit('error', '이미 접속된 IP 주소입니다.');
-                //     socket.disconnect(true); // 클라이언트의 연결을 강제로 끊습니다.
-                //     return;
-                // }
-
-                // // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
-                // connectedIPs.add(clientIP);
-                // console.log('connectedIPs=', connectedIPs);
-
+                // socketCheckLogin 미들웨어
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
                         return done(err.message);
                     }
                 });
-                console.log('1=', 1);
+
                 const user = await UserInfo.findOne({
                     where: { userId: socket.locals.user.userId },
                 });
@@ -361,6 +337,7 @@ module.exports = (io) => {
                     return;
                 }
 
+                // roomId 조회 후 room 생성
                 const room = await Room.findOne({ where: { roomId } });
                 console.log(room);
 
@@ -368,18 +345,10 @@ module.exports = (io) => {
                     socket.emit('error', '입장할 수 있는 방이 없습니다.');
                     return;
                 }
-                console.log('2=', 2);
+
+                // 방에 입장
                 socket.join(room.roomId);
                 socket.roomId = room.roomId;
-
-                // 방이 존재하지 않을 경우 방과 nickNames를 초기화한 빈 배열로 생성
-                if (!nickNames[roomId]) {
-                    nickNames[roomId] = { nickNames: [] };
-                }
-
-                if (!Array.isArray(nickNames[roomId].nickNames)) {
-                    nickNames[roomId].nickNames = [];
-                }
 
                 if (!avatars[roomId]) {
                     avatars[roomId] = { avatars: [] };
@@ -389,6 +358,7 @@ module.exports = (io) => {
                     socket.locals = {};
                 }
 
+                // 랜덤 아바타 미들웨어
                 await socketRandomAvatar(socket, async () => {
                     const userId = socket.locals.user.userId;
                     const userInfo = await UserInfo.findOne({
@@ -401,7 +371,7 @@ module.exports = (io) => {
                     return;
                 });
 
-                //socket(방) 입장 시 닉네임 랜덤API 이용해서 부여
+                // 랜덤 닉네임 미들웨어
                 await new Promise((resolve) => {
                     socketRandomName(socket, () => {
                         const nickName = socket.locals.random;
@@ -411,70 +381,49 @@ module.exports = (io) => {
                         user.roomId = room.roomId;
                         user.nickName = nickName;
 
-                        // // 방에서 나간 사용자의 아바타 제거
-                        // avatars[roomId].avatars = avatars[
-                        //     roomId
-                        // ].avatars.filter(
-                        //     (avatar) => avatar !== socket.locals.avatar
-                        // );
-
+                        // userInfo save
                         user.save().then(() => {
                             done();
 
+                            // userData 생성
                             const userData = {
                                 nickName: user.nickName,
                                 avatar: user.avatar,
                                 host: user.host,
-                                debater: user.debater
+                                debater: user.debater,
                             };
 
+                            // 유저 data List 만들기
                             data.push(userData);
-                            console.log("userdata =", data);
+                            console.log('userData =', data);
 
-
-                            // nickNames[roomId].nickNames = [
-                            //     ...nickNames[roomId].nickNames,
-                            //     nickName,
-                            // ];
-                            // console.log(nickNames[roomId].nickNames);
-
-                            // avatars[roomId].avatars = [
-                            //     ...avatars[roomId].avatars,
-                            //     socket.locals.avatar,
-                            // ];
-                            // console.log(
-                            //     'avatars[roomId].avatars=',
-                            //     avatars[roomId].avatars
-                            // );
-
-                            // 연결된 socket 전체에게 입장한 유저 nickNames 보내기
+                            // 연결된 socket 전체에게 입장한 유저 data 보내기
                             io.to(roomId).emit('roomJoined', data);
 
                             resolve();
                         });
-                        console.log('3=', 3);
                     });
                 });
 
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
+                // roomList 갱신
                 const roomList = await getRoomList(kategorieId);
 
+                // 룸리스트 네임스페이스로 전달
                 io.of('/roomList')
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
 
-                console.log('4=', 4);
-
-                socket.on("leave_room", async (done) => {
+                // 방 나가기
+                socket.on('leave_room', async (done) => {
                     const nickName = socket.nickName;
 
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
-                    data = data.filter((userData) => userData.nickName !== nickName);
-
-                    // 데이터 저장
-
+                    data = data.filter(
+                        (userData) => userData.nickName !== nickName
+                    );
 
                     // 유저정보 초기화
                     user.host = 0;
@@ -490,19 +439,21 @@ module.exports = (io) => {
                     // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
 
-                    // 방 퇴장 후 남아있는 nickName 리스트 보내기
+                    // 방 퇴장 후 남아있는 userData 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
 
-                    //방인원 체크후 db업데이트
+                    // 방 인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
 
-                    //빈방 삭제
+                    // 빈방 삭제
                     await deleteEmptyRooms();
 
                     // 네임스페이스에 룸리스트 보내기
-                    io.of('/roomList').to(kategorieId).emit('update_roomList', roomList);
+                    io.of('/roomList')
+                        .to(kategorieId)
+                        .emit('update_roomList', roomList);
 
                     done();
 
@@ -510,33 +461,23 @@ module.exports = (io) => {
                     socket.disconnect();
                 });
 
+                // socket disconnecting
                 socket.on('disconnecting', async () => {
-
                     const nickName = socket.nickName;
 
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
-                    data = data.filter((userData) => userData.nickName !== nickName);
+                    data = data.filter(
+                        (userData) => userData.nickName !== nickName
+                    );
 
-                    // // ip연결 정보 삭제
-                    // const clientIP = socket.request.connection.remoteAddress;
-                    // await connectedIPs.delete(clientIP);
-                    // console.log(
-                    //     '클라이언트가 연결을 종료했습니다. IP 주소:',
-                    //     clientIP
-                    // );
-
-                    // console.log('connectedIPs=', connectedIPs);
-
-                    // 네임스페이스에 룸리스트 보내기
-
+                    // // 유저 IP 정보 삭제
+                    // ipInfoDeleteFunc();
                 });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
                 socket.emit('error', '배심원 참여 처리에 실패했습니다.');
             }
         });
-
-        //
 
         // 게임 시작
         socket.on('show_roulette', async (result, kategorieId, done) => {
@@ -657,10 +598,10 @@ module.exports = (io) => {
         //     })
 
         //     const debaters = await UserInfo.findeOne({
-        //         where: 
+        //         where:
         //     })
 
-        //     const debaterData = 
+        //     const debaterData =
         //     socket.emit("전달",debaterData)
         // })
 
@@ -718,7 +659,9 @@ module.exports = (io) => {
                 // 투표 결과 전송
                 const voteData = {
                     voteCounts,
-                    winnerNickName: debaterUsers.find((user) => user.host === winnerUser)?.nickName,
+                    winnerNickName: debaterUsers.find(
+                        (user) => user.host === winnerUser
+                    )?.nickName,
                     loserNickName,
                 };
                 socket.emit('voteResult', voteData);
@@ -727,7 +670,5 @@ module.exports = (io) => {
                 socket.emit('error', '토론 처리에 실패했습니다.');
             }
         });
-    })
-}
-
-
+    });
+};
