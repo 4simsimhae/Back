@@ -602,7 +602,7 @@ module.exports = (io) => {
             done();
         });
 
-        socket.on('startDebate', async (roomId) => {
+        socket.on('vote', async (roomId, nickName) => {
             try {
                 const debaterUsers = await UserInfo.findAll({
                     where: { roomId, debater: 1 },
@@ -615,16 +615,16 @@ module.exports = (io) => {
                     voteCounts[user.userId] = 0;
                 }
 
-                // 토론 후 배심원들의 투표
-                socket.on('vote', (votedUserId) => {
-                    if (
-                        debaterUsers.some((user) => user.userId === votedUserId)
-                    ) {
-                        voteCounts[votedUserId]++;
-                    }
-                });
+                // 투표를 진행하는 사용자의 userId 추출
+                const votedUserId = debaterUsers.find(
+                    (user) => user.nickName === nickName
+                )?.userId;
 
-                // 토론이 종료되고 승자 결정
+                if (votedUserId) {
+                    // 토론자들의 투표 수 증가
+                    voteCounts[votedUserId]++;
+                }
+
                 let maxVotes = 0;
                 let winnerUserId = null;
 
@@ -639,17 +639,26 @@ module.exports = (io) => {
                 for (const user of debaterUsers) {
                     if (user.userId === winnerUserId) {
                         user.debater = 1;
+                        user.host = 1;
                         user.like = 0;
                         user.hate = 0;
                         user.questionMark = 0;
                     } else {
                         user.debater = 0;
+                        user.host = 0;
                         user.like = 0;
                         user.hate = 0;
                         user.questionMark = 0;
                     }
                     await user.save();
                 }
+
+                // 프론트로 투표 득표수와 토론자 아이디 전달
+                const voteData = {
+                    voteCounts,
+                    winnerUserId,
+                };
+                socket.emit('voteResult', voteData);
             } catch (error) {
                 console.error('토론 처리 실패:', error);
                 socket.emit('error', '토론 처리에 실패했습니다.');
