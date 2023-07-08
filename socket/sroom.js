@@ -654,9 +654,12 @@ module.exports = (io) => {
                 }
 
                 // 프론트로 투표 득표수와 토론자 아이디 전달
+                const winnerNickName = debaterUsers.find(
+                    (user) => user.userId === winnerUserId
+                )?.nickName;
                 const voteData = {
                     voteCounts,
-                    winnerUserId,
+                    winnerNickName,
                 };
                 socket.emit('voteResult', voteData);
             } catch (error) {
