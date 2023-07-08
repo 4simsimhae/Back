@@ -210,7 +210,7 @@ module.exports = (io) => {
                         user.save().then(() => {
                             done();
 
-                            
+
                             const userData = {
                                 nickName: user.nickName,
                                 avatar: user.avatar,
@@ -259,13 +259,13 @@ module.exports = (io) => {
 
                 socket.on("leave_room", async (done) => {
                     const nickName = socket.nickName;
-                    
+
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
                     data = data.filter((userData) => userData.nickName !== nickName);
-                    
+
                     // 데이터 저장
-                    
-                
+
+
                     // 유저정보 초기화
                     user.host = 0;
                     user.debater = 0;
@@ -273,29 +273,29 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
-                
+
                     // user 정보 초기화 후 db에 저장
                     await user.save();
-                
+
                     // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
-                
+
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
-                
+
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
-                
+
                     //빈방 삭제
                     await deleteEmptyRooms();
-                
+
                     // 네임스페이스에 룸리스트 보내기
                     io.of('/roomList').to(kategorieId).emit('update_roomList', roomList);
-                
+
                     done();
-                
+
                     // 소켓 연결 끊기
                     socket.disconnect();
                 });
@@ -303,7 +303,7 @@ module.exports = (io) => {
                 socket.on('disconnecting', async () => {
 
                     const nickName = socket.nickName;
-                    
+
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
                     data = data.filter((userData) => userData.nickName !== nickName);
 
@@ -411,17 +411,16 @@ module.exports = (io) => {
                         user.roomId = room.roomId;
                         user.nickName = nickName;
 
-                        // 방에서 나간 사용자의 아바타 제거
-                        avatars[roomId].avatars = avatars[
-                            roomId
-                        ].avatars.filter(
-                            (avatar) => avatar !== socket.locals.avatar
-                        );
+                        // // 방에서 나간 사용자의 아바타 제거
+                        // avatars[roomId].avatars = avatars[
+                        //     roomId
+                        // ].avatars.filter(
+                        //     (avatar) => avatar !== socket.locals.avatar
+                        // );
 
                         user.save().then(() => {
                             done();
-                            
-                            const data = [];
+
                             const userData = {
                                 nickName: user.nickName,
                                 avatar: user.avatar,
@@ -470,13 +469,13 @@ module.exports = (io) => {
 
                 socket.on("leave_room", async (done) => {
                     const nickName = socket.nickName;
-                    
+
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
                     data = data.filter((userData) => userData.nickName !== nickName);
-                    
+
                     // 데이터 저장
-                    
-                
+
+
                     // 유저정보 초기화
                     user.host = 0;
                     user.debater = 0;
@@ -484,29 +483,29 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
-                
+
                     // user 정보 초기화 후 db에 저장
                     await user.save();
-                
+
                     // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
-                
+
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
-                
+
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
-                
+
                     //빈방 삭제
                     await deleteEmptyRooms();
-                
+
                     // 네임스페이스에 룸리스트 보내기
                     io.of('/roomList').to(kategorieId).emit('update_roomList', roomList);
-                
+
                     done();
-                
+
                     // 소켓 연결 끊기
                     socket.disconnect();
                 });
@@ -514,7 +513,7 @@ module.exports = (io) => {
                 socket.on('disconnecting', async () => {
 
                     const nickName = socket.nickName;
-                    
+
                     // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
                     data = data.filter((userData) => userData.nickName !== nickName);
 
@@ -675,40 +674,33 @@ module.exports = (io) => {
 
                 // 토론자들의 투표 수 초기화
                 for (const user of debaterUsers) {
-                    voteCounts[user.userId] = 0;
+                    voteCounts[user.host] = 0;
                 }
 
-                // 투표를 진행하는 사용자의 userId 추출
-                const votedUserId = debaterUsers.find(
-                    (user) => user.nickName === nickName
-                )?.userId;
+                // 해당 host 값에 따라 투표 수 증가
+                voteCounts[host]++;
 
-                if (votedUserId) {
-                    // 토론자들의 투표 수 증가
-                    voteCounts[votedUserId]++;
-                }
-
+                // 투표 결과에서 이긴 사람 찾기
+                let winnerHost = null;
                 let maxVotes = 0;
-                let winnerUserId = null;
-
-                for (const userId in voteCounts) {
-                    if (voteCounts[userId] > maxVotes) {
-                        maxVotes = voteCounts[userId];
-                        winnerUserId = userId;
+                for (const [host, count] of Object.entries(voteCounts)) {
+                    if (count > maxVotes) {
+                        maxVotes = count;
+                        winnerHost = host;
                     }
                 }
 
                 // 토론자들의 상태 업데이트
                 for (const user of debaterUsers) {
-                    //이긴 토론자 정보 수정
-                    if (user.userId === winnerUserId) {
+                    // 이긴 토론자 정보 수정
+                    if (user.host === winnerHost) {
                         user.debater = 1;
                         user.host = 1;
                         user.like = 0;
                         user.hate = 0;
                         user.questionMark = 0;
                     } else {
-                        //진 토론자 정보 수정
+                        // 진 토론자 정보 수정
                         user.debater = 0;
                         user.host = 0;
                         user.like = 0;
@@ -718,13 +710,16 @@ module.exports = (io) => {
                     await user.save();
                 }
 
-                // 프론트로 투표 득표수와 토론자 아이디 전달
-                const winnerNickName = debaterUsers.find(
-                    (user) => user.userId === winnerUserId
-                )?.nickName;
+                // 진 토론자의 닉네임 추출
+                const loserNickName = debaterUsers
+                    .filter((user) => user.host !== winnerHost)
+                    .map((user) => user.nickName);
+
+                // 투표 결과 전송
                 const voteData = {
                     voteCounts,
-                    winnerNickName,
+                    winnerNickName: debaterUsers.find((user) => user.host === winnerHost)?.nickName,
+                    loserNickName,
                 };
                 socket.emit('voteResult', voteData);
             } catch (error) {
