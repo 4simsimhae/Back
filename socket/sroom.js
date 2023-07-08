@@ -681,19 +681,19 @@ module.exports = (io) => {
                 voteCounts[host]++;
 
                 // 투표 결과에서 이긴 사람 찾기
-                let winnerHost = null;
+                let winnerUser = null;
                 let maxVotes = 0;
                 for (const [host, count] of Object.entries(voteCounts)) {
                     if (count > maxVotes) {
                         maxVotes = count;
-                        winnerHost = host;
+                        winnerUser = host;
                     }
                 }
 
                 // 토론자들의 상태 업데이트
                 for (const user of debaterUsers) {
                     // 이긴 토론자 정보 수정
-                    if (user.host === winnerHost) {
+                    if (user.host === winnerUser) {
                         user.debater = 1;
                         user.host = 1;
                         user.like = 0;
@@ -718,7 +718,7 @@ module.exports = (io) => {
                 // 투표 결과 전송
                 const voteData = {
                     voteCounts,
-                    winnerNickName: debaterUsers.find((user) => user.host === winnerHost)?.nickName,
+                    winnerNickName: debaterUsers.find((user) => user.host === winnerUser)?.nickName,
                     loserNickName,
                 };
                 socket.emit('voteResult', voteData);
