@@ -103,40 +103,5 @@ module.exports = (io) => {
                 socket.emit('error', '? 처리에 실패했습니다.');
             }
         });
-
-        socket.on('leaveRoom', async (roomId, userId) => {
-            try {
-                // userId 조회
-                const debater = await UserInfo.findOne({
-                    where: { roomId, userId, debater: 1 },
-                });
-
-                if (!debater) {
-                    socket.emit('error', '유저를 찾을 수 없습니다.');
-                    return;
-                }
-
-                // debater 값을 '0'으로 초기화
-                debater.debater = 0;
-
-                // 좋아요, 싫어요, 물음표 초기화
-                debater.like = 0;
-                debater.hate = 0;
-                debater.questionMark = 0;
-
-                await debater.save();
-
-                // 초기화된 정보를 클라이언트에게 전달
-                socket.emit('resetValues', {
-                    userId,
-                    like: debater.like,
-                    hate: debater.hate,
-                    questionMark: debater.questionMark,
-                });
-            } catch (error) {
-                console.error('값 초기화 실패:', error);
-                socket.emit('error', '값 초기화에 실패했습니다.');
-            }
-        });
     });
 };
