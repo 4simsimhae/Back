@@ -88,6 +88,7 @@ module.exports = (io) => {
 
     const nickNames = {};
     const avatars = {};
+    let data = [];
     io.on('connection', (socket) => {
         socket.onAny((event) => {
             console.log(`Socket Event: ${event}`);
@@ -209,27 +210,34 @@ module.exports = (io) => {
                         user.save().then(() => {
                             done();
 
-                            nickNames[roomId].nickNames = [
-                                ...nickNames[roomId].nickNames,
-                                nickName,
-                            ];
-                            console.log(nickNames[roomId].nickNames);
-
-                            avatars[roomId].avatars = [
-                                ...avatars[roomId].avatars,
-                                socket.locals.avatar,
-                            ];
-                            console.log(
-                                'avatars[roomId].avatars=',
-                                avatars[roomId].avatars
-                            );
-
-                            const data = {
-                                nicknames: nickNames[roomId].nickNames,
-                                avatars: avatars[roomId].avatars,
+                            
+                            const userData = {
+                                nickName: user.nickName,
+                                avatar: user.avatar,
+                                host: user.host,
+                                debater: user.debater
                             };
-                            console.log('data=', data);
-                            //연결된 socket 전체에게 입장한 유저 nickNames 보내기
+
+                            data.push(userData);
+                            console.log("userdata =", data);
+
+
+                            // nickNames[roomId].nickNames = [
+                            //     ...nickNames[roomId].nickNames,
+                            //     nickName,
+                            // ];
+                            // console.log(nickNames[roomId].nickNames);
+
+                            // avatars[roomId].avatars = [
+                            //     ...avatars[roomId].avatars,
+                            //     socket.locals.avatar,
+                            // ];
+                            // console.log(
+                            //     'avatars[roomId].avatars=',
+                            //     avatars[roomId].avatars
+                            // );
+
+                            // 연결된 socket 전체에게 입장한 유저 nickNames 보내기
                             io.to(roomId).emit('roomJoined', data);
 
                             resolve();
@@ -250,23 +258,14 @@ module.exports = (io) => {
                 console.log('4=', 4);
 
                 socket.on("leave_room", async (done) => {
-                    // 방 나가기전에 user정보 초기화
                     const nickName = socket.nickName;
-                    nickNames[roomId].nickNames = nickNames[
-                        roomId
-                    ].nickNames.filter((item) => item !== nickName);
-
-                    // 방에서 나간 사용자의 아바타 제거
-                    avatars[roomId].avatars = avatars[roomId].avatars.filter(
-                        (avatar) => avatar !== socket.locals.avatar
-                    );
-
+                    
+                    // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
+                    data = data.filter((userData) => userData.nickName !== nickName);
+                    
                     // 데이터 저장
-                    const data = {
-                        nicknames: nickNames[roomId].nickNames,
-                        avatars: avatars[roomId].avatars,
-                    };
-
+                    
+                
                     // 유저정보 초기화
                     user.host = 0;
                     user.debater = 0;
@@ -274,46 +273,49 @@ module.exports = (io) => {
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
-                    user.avatar = null;
-
-                    //user 정보 초기화 후 db에 저장
+                
+                    // user 정보 초기화 후 db에 저장
                     await user.save();
-
+                
                     // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
-
+                
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
-
+                
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
-
+                
                     //빈방 삭제
                     await deleteEmptyRooms();
-
+                
                     // 네임스페이스에 룸리스트 보내기
-                    io.of('/roomList')
-                        .to(kategorieId)
-                        .emit('update_roomList', roomList);
-
-                    done()
-
+                    io.of('/roomList').to(kategorieId).emit('update_roomList', roomList);
+                
+                    done();
+                
                     // 소켓 연결 끊기
-                    socket.disconnect()
+                    socket.disconnect();
                 });
 
                 socket.on('disconnecting', async () => {
-                    // // ip연결 정보 삭제
-                       // const clientIP = socket.request.connection.remoteAddress;
-                       // await connectedIPs.delete(clientIP);
-                       // console.log(
-                       //     '클라이언트가 연결을 종료했습니다. IP 주소:',
-                       //     clientIP
-                       // );
 
-                       // console.log('connectedIPs=', connectedIPs);
+                    const nickName = socket.nickName;
+                    
+                    // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
+                    data = data.filter((userData) => userData.nickName !== nickName);
+
+                    // // ip연결 정보 삭제
+                    // const clientIP = socket.request.connection.remoteAddress;
+                    // await connectedIPs.delete(clientIP);
+                    // console.log(
+                    //     '클라이언트가 연결을 종료했습니다. IP 주소:',
+                    //     clientIP
+                    // );
+
+                    // console.log('connectedIPs=', connectedIPs);
                 })
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
@@ -418,32 +420,43 @@ module.exports = (io) => {
 
                         user.save().then(() => {
                             done();
-                            //socket(방)에 입장한 닉네임 리스트 만들기
-                            nickNames[roomId].nickNames = [
-                                ...nickNames[roomId].nickNames,
-                                nickName,
-                            ];
-                            console.log(nickNames[roomId].nickNames);
-
-                            //socket(방)에 입장한 아바타 리스트 만들기
-                            avatars[roomId].avatars = [
-                                ...avatars[roomId].avatars,
-                                socket.locals.avatar,
-                            ];
-                            console.log(avatars[roomId].avatars);
-
-                            const data = {
-                                nicknames: nickNames[roomId].nickNames,
-                                avatars: avatars[roomId].avatars,
+                            
+                            const data = [];
+                            const userData = {
+                                nickName: user.nickName,
+                                avatar: user.avatar,
+                                host: user.host,
+                                debater: user.debater
                             };
-                            console.log('data=', data);
-                            //연결된 socket 전체에게 입장한 유저 nickNames 보내기
+
+                            data.push(userData);
+                            console.log("userdata =", data);
+
+
+                            // nickNames[roomId].nickNames = [
+                            //     ...nickNames[roomId].nickNames,
+                            //     nickName,
+                            // ];
+                            // console.log(nickNames[roomId].nickNames);
+
+                            // avatars[roomId].avatars = [
+                            //     ...avatars[roomId].avatars,
+                            //     socket.locals.avatar,
+                            // ];
+                            // console.log(
+                            //     'avatars[roomId].avatars=',
+                            //     avatars[roomId].avatars
+                            // );
+
+                            // 연결된 socket 전체에게 입장한 유저 nickNames 보내기
                             io.to(roomId).emit('roomJoined', data);
 
                             resolve();
                         });
+                        console.log('3=', 3);
                     });
                 });
+
                 //방인원 체크후 db업데이트
                 await updateRoomCount(room.roomId);
 
@@ -453,39 +466,57 @@ module.exports = (io) => {
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
 
-                socket.on('disconnecting', async () => {
-                    //socket(방) 나가기전에 user정보 초기화
+                console.log('4=', 4);
+
+                socket.on("leave_room", async (done) => {
                     const nickName = socket.nickName;
-                    nickNames[roomId].nickNames = nickNames[
-                        roomId
-                    ].nickNames.filter((item) => item !== nickName);
-                    console.log('닉네임리스트2 =', nickNames[roomId].nickNames);
+                    
+                    // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
+                    data = data.filter((userData) => userData.nickName !== nickName);
+                    
+                    // 데이터 저장
+                    
+                
+                    // 유저정보 초기화
                     user.host = 0;
                     user.debater = 0;
                     user.like = 0;
                     user.hate = 0;
                     user.questionMark = 0;
                     user.roomId = 0;
-
-                    // 방에서 나간 사용자의 아바타 제거
-                    avatars[roomId].avatars = avatars[roomId].avatars.filter(
-                        (avatar) => avatar !== socket.locals.avatar
-                    );
-
-                    //user 정보 초기화 후 db에 저장
+                
+                    // user 정보 초기화 후 db에 저장
                     await user.save();
-
+                
                     // 방 퇴장 유저 nickName 프론트로 전달
                     io.to(roomId).emit('roomLeft', nickName);
-
+                
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
-
+                
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
                     const roomList = await getRoomList(kategorieId);
+                
+                    //빈방 삭제
                     await deleteEmptyRooms();
+                
+                    // 네임스페이스에 룸리스트 보내기
+                    io.of('/roomList').to(kategorieId).emit('update_roomList', roomList);
+                
+                    done();
+                
+                    // 소켓 연결 끊기
+                    socket.disconnect();
+                });
+
+                socket.on('disconnecting', async () => {
+
+                    const nickName = socket.nickName;
+                    
+                    // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
+                    data = data.filter((userData) => userData.nickName !== nickName);
 
                     // // ip연결 정보 삭제
                     // const clientIP = socket.request.connection.remoteAddress;
@@ -498,9 +529,7 @@ module.exports = (io) => {
                     // console.log('connectedIPs=', connectedIPs);
 
                     // 네임스페이스에 룸리스트 보내기
-                    io.of('/roomList')
-                        .to(kategorieId)
-                        .emit('update_roomList', roomList);
+
                 });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
@@ -623,7 +652,20 @@ module.exports = (io) => {
             done();
         });
 
-        socket.on('vote', async (roomId, nickName) => {
+        // socket.on("전달", async (roomId) => {
+        //     const users = await UserInfo.findeAll({
+        //         where: {roomId,debater:1}
+        //     })
+
+        //     const debaters = await UserInfo.findeOne({
+        //         where: 
+        //     })
+
+        //     const debaterData = 
+        //     socket.emit("전달",debaterData)
+        // })
+
+        socket.on('vote', async (roomId, host) => {
             try {
                 const debaterUsers = await UserInfo.findAll({
                     where: { roomId, debater: 1 },
@@ -658,6 +700,7 @@ module.exports = (io) => {
 
                 // 토론자들의 상태 업데이트
                 for (const user of debaterUsers) {
+                    //이긴 토론자 정보 수정
                     if (user.userId === winnerUserId) {
                         user.debater = 1;
                         user.host = 1;
@@ -665,6 +708,7 @@ module.exports = (io) => {
                         user.hate = 0;
                         user.questionMark = 0;
                     } else {
+                        //진 토론자 정보 수정
                         user.debater = 0;
                         user.host = 0;
                         user.like = 0;
