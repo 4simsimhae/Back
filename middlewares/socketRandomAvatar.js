@@ -149,7 +149,7 @@ module.exports = async (socket, next) => {
             const roomId = userInfo.roomId;
             const avatars = {}; // 빈 객체로 초기화
             avatars[roomId] = {
-                avatars: [avatar], // 배열로 아바타 추가
+                avatars: avatar, // 배열로 아바타 추가
             };
 
             socket.locals.avatars = avatars[roomId]?.avatars || [];

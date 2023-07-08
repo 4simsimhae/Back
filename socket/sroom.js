@@ -219,7 +219,10 @@ module.exports = (io) => {
                                 ...avatars[roomId].avatars,
                                 socket.locals.avatar,
                             ];
-                            console.log(avatars[roomId].avatars);
+                            console.log(
+                                'avatars[roomId].avatars=',
+                                avatars[roomId].avatars
+                            );
 
                             const data = {
                                 nicknames: nickNames[roomId].nickNames,
@@ -271,6 +274,7 @@ module.exports = (io) => {
                     // 방 퇴장 후 남아있는 nickName 리스트 보내기
                     io.to(roomId).emit('roomJoined', data);
                     console.log('data =', data);
+                    console.log(data.avatars[0].color.join(', '));
 
                     //방인원 체크후 db업데이트
                     await updateRoomCount(room.roomId);
