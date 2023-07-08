@@ -1,4 +1,4 @@
-const { UserInfo, Room, User, Chat, Subject } = require('../models');
+const { UserInfo, Room, User, Subject } = require('../models');
 const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
 const socketRandomAvatar = require('../middlewares/socketRandomAvatar');
@@ -482,22 +482,23 @@ module.exports = (io) => {
         // 게임 시작
         socket.on('show_roulette', async (result, kategorieId, done) => {
             try {
+                // roomId 추출
                 const roomId = socket.roomId;
                 console.log('roomId =', roomId);
 
+                // 추출한 roomId로 room 생성
                 const room = await Room.findOne({
                     where: { roomId },
                 });
 
-                // const kategorieId = room.kategorieId;
-                // console.log('kategorieId =', kategorieId);
-
+                // kategorieId로 해당 카테고리의 주제리스트 가져오기
                 const subjectList = await Subject.findOne({
                     where: { kategorieId },
                     attributes: ['subjectList'],
                 });
                 console.log('subjectList=', subjectList);
 
+                // subjectList JSON 형태로 파싱
                 const allSubjects = JSON.parse(
                     subjectList.dataValues.subjectList
                 );
@@ -591,19 +592,6 @@ module.exports = (io) => {
             io.to(roomId).emit('close_roulette', result);
             done();
         });
-
-        // socket.on("전달", async (roomId) => {
-        //     const users = await UserInfo.findeAll({
-        //         where: {roomId,debater:1}
-        //     })
-
-        //     const debaters = await UserInfo.findeOne({
-        //         where:
-        //     })
-
-        //     const debaterData =
-        //     socket.emit("전달",debaterData)
-        // })
 
         socket.on('vote', async (roomId, host) => {
             try {
