@@ -82,6 +82,7 @@ npx sequelize model:generate --name Kategorie --attributes kategorieName:string,
 npx sequelize model:generate --name Room --attributes kategorieName:string,roomName:string,debater:integer,panel:integer
 npx sequelize model:generate --name Subject --attributes kategorieId:integer,kategorieName:string,subjectList:string
 npx sequelize model:generate --name Chat --attributes roomId:integer,chatList:string
+npx sequelize model:generate --name Vote --attributes roomId:integer,debater1Count:integer,debater2Count:integer
 ```
 
 ```
