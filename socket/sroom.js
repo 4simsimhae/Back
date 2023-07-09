@@ -612,17 +612,22 @@ module.exports = (io) => {
 
         socket.on('vote', async (roomId, host) => {
             try {
+                // 룸 정의
                 const room = await Room.findOne({
                     where: { roomId },
                 });
 
+                //투표 인원 체크
                 const panelCount = room.panel;
                 console.log('배심원수 = ', panelCount);
 
+                // 1번 토론자 조회
                 const debaterUser1 = await UserInfo.findOne({
                     where: { roomId, host: 1, debater: 1 },
                     attributes: ['nickName'],
                 });
+
+                // 2번 토론자 조회
                 const debaterUser2 = await UserInfo.findOne({
                     where: { roomId, host: 0, debater: 1 },
                     attributes: ['nickName'],
@@ -631,7 +636,7 @@ module.exports = (io) => {
                 console.log('토론자1', debaterUser1.nickName);
                 console.log('토론자2', debaterUser2.nickName);
 
-                // 데이터베이스에서 Vote 레코드를 조회하거나 생성합니다.
+                // 데이터베이스에서 Vote 레코드를 조회하거나 생성
                 let voteRecord = await Vote.findOne({ where: { roomId } });
                 if (!voteRecord) {
                     voteRecord = await Vote.create({
@@ -641,13 +646,14 @@ module.exports = (io) => {
                     });
                 }
 
+                // 전달받은 host값이 1이면 1번토론자 투표수 증가 , 0이면 2번토론자 투표수 증가
                 if (host === 1) {
                     await voteRecord.increment('debater1Count');
                 } else if (host === 0) {
                     await voteRecord.increment('debater2Count');
                 }
 
-                // 업데이트된 투표 수를 가져옵니다.
+                // 투표 수 가져오기
                 await voteRecord.reload();
                 const voteCount =
                     voteRecord.debater1Count + voteRecord.debater2Count;
