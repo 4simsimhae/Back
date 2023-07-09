@@ -23,7 +23,8 @@ module.exports = async (req, res, next) => {
             console.log('토큰 있음 ------------------?');
 
             const [authType, authToken] = Authorization.split(' ');
-            console.log('Authorization = ', authType, authToken);
+            console.log('authType = ', authType);
+            console.log('authToken = ', authToken);
             console.log('토큰 형식 ---------------');
 
             // authType === Bearer인지 확인

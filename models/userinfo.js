@@ -32,6 +32,9 @@ module.exports = (sequelize, DataTypes) => {
             nickName: {
                 type: DataTypes.STRING,
             },
+            avatar: {
+                type: DataTypes.STRING,
+            },
             like: {
                 type: DataTypes.INTEGER,
             },
@@ -41,8 +44,11 @@ module.exports = (sequelize, DataTypes) => {
             questionMark: {
                 type: DataTypes.INTEGER,
             },
+            host: {
+                type: DataTypes.INTEGER,
+            },
             debater: {
-                type: DataTypes.BOOLEAN,
+                type: DataTypes.INTEGER,
             },
             createdAt: {
                 allowNull: false,

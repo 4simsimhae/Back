@@ -42,7 +42,7 @@ module.exports = (io) => {
         // "new_message" 이벤트를 처리하여 새로운 메시지를 전송하고 데이터베이스에 저장합니다.
         socket.on('new_message', async (msg, roomId, done) => {
             try {
-                const nickName = '지나가는 토론자';
+                const nickName = socket.nickName;
                 console.log('1 msg =', msg);
 
                 // 해당 토론방에 새로운 메시지를 전송합니다.

@@ -3,6 +3,8 @@ const { User } = require('../models');
 
 module.exports = async (socket, next) => {
     try {
+        console.log('socket.handshake =', socket.handshake);
+        console.log('socket.id =', socket.id);
         console.log('query=', socket.handshake.query);
         const Authorization = socket.handshake.query.token;
         console.log('받은 토큰 =', Authorization);

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { User, Kategorie, UserInfo, Room, Subject, chat } = require('../models');
-//const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 
 //open API
 require('dotenv').config();
@@ -41,58 +40,16 @@ async function callChatGPT(prompt) {
     }
 }
 
-// //chatGPT에 질문하기 (기본 테스트창)
-// router.get('/chatgpt', async (req, res) => {
-//     try {
-//         const { ask } = {
-//             ask: `여기에 테스트용으로 하고싶은 말을 적으면 됩니다`,
-//         };
-//         const reply = await callChatGPT([{ role: 'user', content: ask }]);
-
-//         if (reply && reply.content) {
-            //응답 들어있는지 확인
-        //     const content = JSON.parse(reply.content);
-        //     const objectReply = Object.values(content);
-        //     res.json({ role: 'user', reply: objectReply });
-        //     //질문 몇개 DB에 저장하기 코드 추가예정
-        // } else {
-        //     //DB에 저장되어있는 파일 불러오기 코드 추가예정
-        //     res.json(reply);
-        // }
-//         const response = new ApiResponse(200, '', { reply: reply });
-//         return res.status(200).json(response);
-//     } catch (error) {
-//         const response = new ApiResponse(
-//             500,
-//             '예상하지 못한 서버 문제가 발생했습니다.'
-//         );
-//         return res.status(500).json(response);
-//     }
-// });
-
-//카테고리 별 주제 8개 받기
-router.post('/chatgpt', async (req, res) => {
+//chatGPT에 질문하기 (기본 테스트창)//
+router.get('/chatgpt', async (req, res) => {
     try {
-        const { kategorieName } = req.body;
-        //여기 아래에 있는 문장을 적절하게 수정하여
-        //우리가 원하는 형식의 질문을 받아야합니다.
         const { ask } = {
-            ask: `${kategorieName} 카테고리에 대한 황당하고 엽기스러운 토론 주제 8가지를 json 형식으로 주제만 적어서 새로 추천해줘.`,
+            ask: `여기에 테스트용으로 하고싶은 말을 적으면 됩니다`,
         };
-
         const reply = await callChatGPT([{ role: 'user', content: ask }]);
-        
-        //몇초 기다린 후 없으면 DB값 불러오기
-        if (reply && reply.content) {
-            //응답 들어있는지 확인
-            const content = JSON.parse(reply.content);
-            const objectReply = Object.values(content);
-            res.json({ role: 'user', reply: objectReply });
-            //질문 몇개 DB에 저장하기 코드 추가예정
-        } else {
-            //DB에 저장되어있는 파일 불러오기 코드 추가예정
-            res.json(reply);
-        }
+
+        const response = new ApiResponse(200, '', { reply: reply });
+        return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
             500,
@@ -102,7 +59,81 @@ router.post('/chatgpt', async (req, res) => {
     }
 });
 
-//선택된 주제 받기
+//카테고리 별 주제 8개 받기
+router.post('/chatgpt', async (req, res) => {
+    try {
+        const list = [1, 2, 3, 4, 5, 6, 7, 8]
+        for (const data of list){
+            const kategorieId  = data;
+            const { kategorieName } = await Kategorie.findOne({
+            attributes: ['kategorieName'],
+                where: { kategorieId },
+            });
+
+            //GPT에 질문하기
+            var [ kategorieName1, kategorieName2] = kategorieName.split('/');
+            if (!kategorieName2){
+                kategorieName2 = ' ';
+            }
+            const { ask } = {
+                ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
+            };
+
+            const reply = await callChatGPT([{ role: 'user', content: ask }]);
+            console.log(reply.content);
+
+            const subjectList = reply.content //+ subject.subjectList;
+            await Subject.update(
+                {
+                    subjectList,
+                    updatedAt: new Date(),
+                },
+                {
+                    where: { kategorieId },
+                }
+            );
+            
+    }
+    res.json({  });
+
+        // ///
+        // const { kategorieId } = req.params;
+        // const { kategorieName } = await Kategorie.findOne({
+        //     attributes: ['kategorieName'],
+        //     where: { kategorieId },
+        // });
+
+        // //GPT에 질문하기
+        // const [ kategorieName1, kategorieName2] = kategorieName.split(' ');
+        // const { ask } = {
+        //     ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS 혹은 판정 의문문 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
+        // };
+
+        // const reply = await callChatGPT([{ role: 'user', content: ask }]);
+        // console.log(reply.content);
+
+        // const subjectList = reply.content //+ subject.subjectList;
+        // const roomlist = await Subject.update(
+        //     {
+        //         subjectList,
+        //     },
+        //     {
+        //         where: { kategorieId },
+        //     }
+        // );
+        // res.json({ roomlist });
+        //질문 몇개 DB에 저장하기 코드 추가예정
+        
+    } catch (error) {
+        const response = new ApiResponse(
+            500,
+            '예상하지 못한 서버 문제가 발생했습니다.'
+        );
+        return res.status(500).json(response);
+    }
+});
+
+//선택된 주제 받기//
 router.put('/chatgpt/:roomId', async (req, res) => {
     try {
         const { roomId } = req.params;
