@@ -16,6 +16,7 @@ const swaggerDocs = require('./swagger.js');
 const indexRouter = require('./routes/index.js');
 const session = require('express-session');
 const authRouter = require('./routes/auth.js');
+const mediasoupRouter = require('./mediasoup/mediasoup.js');
 
 app.use(express.json());
 app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -96,6 +97,7 @@ kakao();
 
 app.use('/', authRouter);
 app.use('/api', [indexRouter]);
+app.use('/sfu', mediasoupRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('simsimhae API / Use "/docs-api" Page');
