@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { User, Kategorie, UserInfo, Room, subject, chat } = require('../models');
 const randomName = require('../middlewares/randomName.js');
 const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
+const randomNickName = require('../middlewares/randomNickName.js');
 
 // 응답 객체
 class ApiResponse {
@@ -125,7 +126,7 @@ router.get('/roomlist/room/:roomId', async (req, res) => {
 router.post(
     '/roomlist/:kategorieId',
     checkLogin,
-    randomName,
+    randomNickName,
     async (req, res) => {
         try {
             const { userId } = res.locals.user;
@@ -217,7 +218,7 @@ router.post(
 );
 
 //입장하기 버튼으로 랜덤닉네임 생성하기
-router.put('/user', checkLogin, randomName, async (req, res) => {
+router.put('/user', checkLogin, randomNickName, async (req, res) => {
     try {
         const { userId } = res.locals.user;
         console.log('디코드된 유저정보 = ', res.locals.user);
@@ -242,6 +243,11 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                     kakaoId: nologinuserId,
                 }
             );
+            const avatars = {
+                name: 'Chien-Shiung',
+                color: ['#6458d6,#a08f43,#6696f0,#9e756e,#ce285e'],
+            };
+            const avatarString = JSON.stringify(avatars);
             await UserInfo.create({
                 //UserInfo 생성하기
                 userId: newNoLoginUser.userId,
@@ -251,6 +257,7 @@ router.put('/user', checkLogin, randomName, async (req, res) => {
                 hate,
                 questionMark,
                 debater,
+                avatar: avatarString,
             });
             const token = jwt.sign(
                 //그리고 토큰보내기

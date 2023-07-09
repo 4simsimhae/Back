@@ -18,6 +18,9 @@ module.exports = {
             nickName: {
                 type: Sequelize.STRING,
             },
+            avatar: {
+                type: Sequelize.STRING,
+            },
             like: {
                 type: Sequelize.INTEGER,
             },
@@ -28,10 +31,10 @@ module.exports = {
                 type: Sequelize.INTEGER,
             },
             host: {
-                type: DataTypes.INTEGER,
+                type: Sequelize.INTEGER,
             },
             debater: {
-                type: DataTypes.INTEGER,
+                type: Sequelize.INTEGER,
             },
             createdAt: {
                 allowNull: false,
