@@ -42,7 +42,7 @@ const peers = io.of('/mediasoup')
  *         |-> Consumer 
  **/
 let worker
-let routers //바뀜 주의
+let Router //바뀜 주의
 let producerTransport
 let consumerTransport
 let producer
@@ -108,13 +108,13 @@ peers.on('connection', async socket => {
     // mediaCodecs -> defined above
     // appData -> custom application data - we are not supplying any
     // none of the two are required
-    router = await worker.createRouter({ mediaCodecs, })
+    Router = await worker.createRouter({ mediaCodecs, })
 
     // Client emits a request for RTP Capabilities
     // This event responds to the request
     socket.on('getRtpCapabilities', (callback) => {
 
-        const rtpCapabilities = router.rtpCapabilities
+        const rtpCapabilities = Router.rtpCapabilities
 
         console.log('rtp Capabilities', rtpCapabilities)
 
@@ -170,7 +170,7 @@ peers.on('connection', async socket => {
     socket.on('consume', async ({ rtpCapabilities }, callback) => {
         try {
         // check if the router can consume the specified producer
-        if (router.canConsume({
+        if (Router.canConsume({
             producerId: producer.id,
             rtpCapabilities
         })) {
@@ -233,7 +233,7 @@ const createWebRtcTransport = async (callback) => {
         }
 
         // https://mediasoup.org/documentation/v3/mediasoup/api/#router-createWebRtcTransport
-        let transport = await router.createWebRtcTransport(webRtcTransport_options)
+        let transport = await Router.createWebRtcTransport(webRtcTransport_options)
         console.log(`transport id: ${transport.id}`)
 
         transport.on('dtlsstatechange', dtlsState => {
