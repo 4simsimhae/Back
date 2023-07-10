@@ -617,18 +617,20 @@ module.exports = (io) => {
                     where: { roomId },
                 });
 
-                //투표 인원 체크
+                // 투표 인원 체크
                 const panelCount = room.panel;
                 console.log('배심원수 = ', panelCount);
 
                 // 1번 토론자 조회
                 const debaterUser1 = await UserInfo.findOne({
                     where: { roomId, host: 1, debater: 1 },
+                    attributes: ['userId', 'nickName'],
                 });
 
                 // 2번 토론자 조회
                 const debaterUser2 = await UserInfo.findOne({
                     where: { roomId, host: 0, debater: 1 },
+                    attributes: ['userId', 'nickName'],
                 });
 
                 console.log('토론자1', debaterUser1.nickName);
@@ -657,7 +659,7 @@ module.exports = (io) => {
                     voteRecord.debater1Count + voteRecord.debater2Count;
                 console.log('투표수', voteCount);
 
-                if (voteCount == panelCount) {
+                if (voteCount === panelCount) {
                     console.log('투표종료');
 
                     let winner;
@@ -671,42 +673,56 @@ module.exports = (io) => {
                         loser = debaterUser2;
                         loserCount = voteRecord.debater2Count;
                     } else {
-                        winner = debaterUser2.nickName;
+                        winner = debaterUser2;
                         winnerCount = voteRecord.debater2Count;
-                        loser = debaterUser1.nickName;
+                        loser = debaterUser1;
                         loserCount = voteRecord.debater1Count;
                     }
 
-                    const voteResult = `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`;
-                    console.log(voteResult);
-                    io.to(roomId).emit(
-                        'voteResult',
-                        winner,
-                        winnerCount,
-                        loser,
-                        loserCount
+                    const voteResult = {
+                        winner: winner.nickName,
+                        winnerCount: winnerCount,
+                        loser: loser.nickName,
+                        loserCount: loserCount,
+                    };
+                    console.log(
+                        '투표 결과',
+                        `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`
                     );
+                    console.log('voteResult', voteResult);
+
+                    io.to(roomId).emit('voteResult', voteResult);
 
                     // 투표 종료 후 데이터 보내주고 voteCount 초기화
                     voteRecord.debater1Count = 0;
                     voteRecord.debater2Count = 0;
                     await voteRecord.save();
+                    console.log('투표수 초기화', voteRecord.debater1Count);
+                    console.log('투표수 초기화', voteRecord.debater2Count);
 
                     // winner 정보 초기화
-                    winner.like = 0;
-                    winner.hate = 0;
-                    winner.questionMark = 0;
-                    winner.debater = 1;
-                    winner.host = 1;
-                    await winner.save();
+                    await UserInfo.update(
+                        {
+                            like: 0,
+                            hate: 0,
+                            questionMark: 0,
+                            debater: 1,
+                            host: 1,
+                        },
+                        { where: { userId: winner.userId } }
+                    );
 
                     // loser 정보 초기화
-                    loser.like = 0;
-                    loser.hate = 0;
-                    loser.questionMark = 0;
-                    loser.debater = 0;
-                    loser.host = 0;
-                    await loser.save();
+                    await UserInfo.update(
+                        {
+                            like: 0,
+                            hate: 0,
+                            questionMark: 0,
+                            debater: 0,
+                            host: 0,
+                        },
+                        { where: { userId: loser.userId } }
+                    );
                 } else {
                     console.log('debater 에게 투표가 되었습니다.');
                 }
