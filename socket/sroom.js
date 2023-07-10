@@ -624,13 +624,11 @@ module.exports = (io) => {
                 // 1번 토론자 조회
                 const debaterUser1 = await UserInfo.findOne({
                     where: { roomId, host: 1, debater: 1 },
-                    attributes: ['nickName'],
                 });
 
                 // 2번 토론자 조회
                 const debaterUser2 = await UserInfo.findOne({
                     where: { roomId, host: 0, debater: 1 },
-                    attributes: ['nickName'],
                 });
 
                 console.log('토론자1', debaterUser1.nickName);
@@ -661,15 +659,57 @@ module.exports = (io) => {
 
                 if (voteCount == panelCount) {
                     console.log('투표종료');
+
+                    let winner;
+                    let loser;
+                    let winnerCount;
+                    let loserCount;
+
+                    if (voteRecord.debater1Count > voteRecord.debater2Count) {
+                        winner = debaterUser1;
+                        winnerCount = voteRecord.debater1Count;
+                        loser = debaterUser2;
+                        loserCount = voteRecord.debater2Count;
+                    } else {
+                        winner = debaterUser2.nickName;
+                        winnerCount = voteRecord.debater2Count;
+                        loser = debaterUser1.nickName;
+                        loserCount = voteRecord.debater1Count;
+                    }
+
+                    const voteResult = `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`;
+                    console.log(voteResult);
+                    io.to(roomId).emit(
+                        'voteResult',
+                        winner,
+                        winnerCount,
+                        loser,
+                        loserCount
+                    );
+
+                    // 투표 종료 후 데이터 보내주고 voteCount 초기화
+                    voteRecord.debater1Count = 0;
+                    voteRecord.debater2Count = 0;
+                    await voteRecord.save();
+
+                    // winner 정보 초기화
+                    winner.like = 0;
+                    winner.hate = 0;
+                    winner.questionMark = 0;
+                    winner.debater = 1;
+                    winner.host = 1;
+                    await winner.save();
+
+                    // loser 정보 초기화
+                    loser.like = 0;
+                    loser.hate = 0;
+                    loser.questionMark = 0;
+                    loser.debater = 0;
+                    loser.host = 0;
+                    await loser.save();
                 } else {
                     console.log('debater 에게 투표가 되었습니다.');
                 }
-
-                const voteResult =
-                    voteRecord.debater1Count > voteRecord.debater2Count
-                        ? `우승자는 ${debaterUser1.nickName} 입니다.`
-                        : `우승자는 ${debaterUser2.nickName} 입니다.`;
-                console.log(voteResult);
             } catch (error) {
                 console.error('투표 처리 실패:', error);
                 socket.emit('error', '투표 처리에 실패했습니다.');
