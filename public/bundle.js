@@ -21677,6 +21677,7 @@ const streamSuccess = async (stream) => {
     track,
     ...params
   }
+  console.log('parmas 출력 = ', params);
 }
 
 const getLocalStream = () => {
@@ -21699,6 +21700,7 @@ const getLocalStream = () => {
 
 // A device is an endpoint connecting to a Router on the 
 // server side to send/recive media
+//(3)
 const createDevice = async () => {
   try {
     device = new mediasoupClient.Device()
@@ -21719,6 +21721,7 @@ const createDevice = async () => {
   }
 }
 
+//(2)
 const getRtpCapabilities = () => {
   // make a request to the server for Router RTP Capabilities
   // see server's socket.on('getRtpCapabilities', ...)
@@ -21728,10 +21731,13 @@ const getRtpCapabilities = () => {
 
     // we assign to local variable and will be used when
     // loading the client Device (see createDevice above)
+    ////
+    // 로컬 변수로 선언 //set localstorage api 사용?
     rtpCapabilities = data.rtpCapabilities
   })
 }
 
+//(4)
 const createSendTransport = () => {
   // see server's socket.on('createWebRtcTransport', sender?, ...)
   // this is a call from Producer, so sender = true
@@ -21757,8 +21763,10 @@ const createSendTransport = () => {
       try {
         // Signal local DTLS parameters to the server side transport
         // see server's socket.on('transport-connect', ...)
+        //(4)-1
         await socket.emit('transport-connect', {
-          dtlsParameters,
+          //transportIdL: producerTransport.id, //수정됨
+          dtlsParameters: dtlsParameters,
         })
 
         // Tell the transport that parameters were transmitted.
@@ -21769,6 +21777,7 @@ const createSendTransport = () => {
       }
     })
 
+    //(4)-2
     producerTransport.on('produce', async (parameters, callback, errback) => {
       console.log(parameters)
 
@@ -21778,6 +21787,7 @@ const createSendTransport = () => {
         // and expect back a server side producer id
         // see server's socket.on('transport-produce', ...)
         await socket.emit('transport-produce', {
+          //transportId: producerTransport.id, //수정됨
           kind: parameters.kind,
           rtpParameters: parameters.rtpParameters,
           appData: parameters.appData,
@@ -21793,6 +21803,7 @@ const createSendTransport = () => {
   })
 }
 
+//(5)
 const connectSendTransport = async () => {
   // we now call produce() to instruct the producer transport
   // to send media to the Router
@@ -21813,9 +21824,11 @@ const connectSendTransport = async () => {
   })
 }
 
+//(6)
 const createRecvTransport = async () => {
   // see server's socket.on('consume', sender?, ...)
   // this is a call from Consumer, so sender = false
+   // consumer로 tramsport 생성
   await socket.emit('createWebRtcTransport', { sender: false }, ({ params }) => {
     // The server sends back params needed 
     // to create Send Transport on the client side
@@ -21829,6 +21842,7 @@ const createRecvTransport = async () => {
     // creates a new WebRTC Transport to receive media
     // based on server's consumer transport params
     // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-createRecvTransport
+    //(6)
     consumerTransport = device.createRecvTransport(params)
 
     // https://mediasoup.org/documentation/v3/communication-between-client-and-server/#producing-media
@@ -21839,6 +21853,7 @@ const createRecvTransport = async () => {
         // Signal local DTLS parameters to the server side transport
         // see server's socket.on('transport-recv-connect', ...)
         await socket.emit('transport-recv-connect', {
+          //transportId: consumerTransport.id,//수정됨
           dtlsParameters,
         })
 
@@ -21852,6 +21867,7 @@ const createRecvTransport = async () => {
   })
 }
 
+//(7)
 const connectRecvTransport = async () => {
   // for consumer, we need to tell the server first
   // to create a consumer based on the rtpCapabilities and consume

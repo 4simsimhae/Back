@@ -34,7 +34,7 @@
     "import": "^0.0.6",
     "jsonwebtoken": "^9.0.0",
     "jws": "^4.0.0",
-    "mediasoup": "^3.12.4",
+    "mediasoup": "^3.12.5",
     "mediasoup-client": "^3.6.93",
     "mysql2": "^3.3.5",
     "node-cron": "^3.0.2",
