@@ -229,6 +229,7 @@ const createRecvTransport = async () => {
           dtlsParameters,
         })
 
+        console.log('dtlsParameters = ', dtlsParameters)
         // Tell the transport that parameters were transmitted.
         callback()
       } catch (error) {
@@ -247,7 +248,6 @@ const connectRecvTransport = async () => {
   await socket.emit('consume', {
     rtpCapabilities: device.rtpCapabilities,
   }, async ({ params }) => {
-    console.log(params)
     if (params.error) {
       console.log('Cannot Consume')
       return
