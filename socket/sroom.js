@@ -1,9 +1,5 @@
 const { UserInfo, Room, User, Subject, Vote } = require('../models');
-const jwt = require('jsonwebtoken');
-const socketRandomName = require('../middlewares/socketRandomName');
 const socketCheckLogin = require('../middlewares/socketCheckLogin');
-const socketRandomAvatar = require('../middlewares/socketRandomAvatar');
-const socketRandomNickName = require('../middlewares/socketRandomNickName.js');
 
 // // 중복 접속 방지
 // const connectedIPs = new Set();
@@ -272,6 +268,7 @@ const deleteEmptyRooms = async () => {
                 panel: 0,
             },
         });
+        console.log('빈 방 리스트', emptyRooms);
 
         // 빈 방 삭제
         await Promise.all(emptyRooms.map((room) => room.destroy()));
@@ -805,8 +802,6 @@ module.exports = async (io) => {
             done();
         });
 
-        let debater1Count = 0;
-        let debater2Count = 0;
         socket.on('vote', async (roomId, host) => {
             try {
                 // 룸 정의
@@ -848,6 +843,7 @@ module.exports = async (io) => {
                 const voteCount =
                     voteRecord.debater1Count + voteRecord.debater2Count;
                 console.log('투표수', voteCount);
+
                 if (voteCount === panelCount) {
                     console.log('투표종료');
 
@@ -859,9 +855,9 @@ module.exports = async (io) => {
                         console.log('무승부 입니다.');
 
                         const voteResult = {
-                            debater1: debaterUser1.nickName,
+                            debater1: debaterUser1.userId,
                             debater1Count: voteRecord.debater1Count,
-                            debater2: debaterUser2.nickName,
+                            debater2: debaterUser2.userId,
                             debater2Count: voteRecord.debater2Count,
                         };
                         io.to(roomId).emit('voteResult', voteResult);
@@ -889,9 +885,9 @@ module.exports = async (io) => {
                         loserCount = voteRecord.debater1Count;
                     }
                     const voteResult = {
-                        winner: winner.nickName,
+                        winner: winner.userId,
                         winnerCount: winnerCount,
-                        loser: loser.nickName,
+                        loser: loser.userId,
                         loserCount: loserCount,
                     };
                     console.log(
@@ -906,44 +902,13 @@ module.exports = async (io) => {
                     await voteRecord.save();
                     console.log('투표수 초기화', voteRecord.debater1Count);
                     console.log('투표수 초기화', voteRecord.debater2Count);
-                    // winner 정보 초기화
-                    // await UserInfo.update(
-                    //     {
-                    //         like: 0,
-                    //         hate: 0,
-                    //         questionMark: 0,
-                    //         debater: 1,
-                    //         host: 1,
-                    //     },
-                    //     { where: { userId: winner.userId } }
-                    // );
-                    // // loser 정보 초기화
-                    // await UserInfo.update(
-                    //     {
-                    //         like: 0,
-                    //         hate: 0,
-                    //         questionMark: 0,
-                    //         debater: 0,
-                    //         host: 0,
-                    //         roomId: 0,
-                    //     },
-                    //     { where: { userId: loser.userId } }
-                    // );
+
                     console.log('승자 닉네임', winner.nickName);
                     console.log('승자 디베이터', winner.debater);
-                    console.log('데이터 =', data);
-                    // data = data.map((item) =>
-                    //     item.userId === winner.userId
-                    //         ? { ...item, host: 1, debater: 1 }
-                    //         : item
-                    // );
-                    // data = data.map((item) =>
-                    //     item.userId === loser.userId
-                    //         ? { ...item, host: 0, debater: 0 }
-                    //         : item
-                    // );
+
                     console.log('투표후', data);
                     console.log('패배자Id', loser.userId);
+
                     // loser 퇴장 시키기
                     // 소켓 정보 가져오기
                     const allSockets = io.sockets.sockets;
