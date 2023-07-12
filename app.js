@@ -9,6 +9,10 @@ const server = http.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
+const path = require('path');
+const _dirname = path.resolve()
+const mediasoup = require('mediasoup');
+
 //swagger
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./swagger.js');
@@ -16,12 +20,15 @@ const swaggerDocs = require('./swagger.js');
 const indexRouter = require('./routes/index.js');
 const session = require('express-session');
 const authRouter = require('./routes/auth.js');
-const mediasoupRouter = require('./mediasoup/mediasoup.js');
+// const mediasoupRouter = require('./mediasoup/mediasoup.js');
 
 app.use(express.json());
 app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+//정적파일 미들웨어 (public폴더)
+app.use('/sfu', express.static(path.join(_dirname, 'public')))
 
 //CORS 설정
 const cors = require('cors');
@@ -49,6 +56,7 @@ const io = require('socket.io')(server, {
 });
 
 const socketHandlers = require('./socket');
+const mediasoupRouter = require('./mediasoup/mediasoup.js')
 
 app.use(
     session({
@@ -97,13 +105,14 @@ kakao();
 
 app.use('/', authRouter);
 app.use('/api', [indexRouter]);
-app.use('/sfu', mediasoupRouter);
+// app.use('/sfu', mediasoupRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('simsimhae API / Use "/docs-api" Page');
 });
 
 socketHandlers(io);
+mediasoupRouter(io);
 
 server.listen(3000, () => {
     console.log('3000 포트로 서버 연결');

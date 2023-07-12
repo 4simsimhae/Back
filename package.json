@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "watch": "watchify public/index.js -o public/bundle.js -v"
   },
   "keywords": [],
   "author": "",
@@ -33,7 +34,7 @@
     "import": "^0.0.6",
     "jsonwebtoken": "^9.0.0",
     "jws": "^4.0.0",
-    "mediasoup": "^3.12.4",
+    "mediasoup": "^3.12.5",
     "mediasoup-client": "^3.6.93",
     "mysql2": "^3.3.5",
     "node-cron": "^3.0.2",
@@ -48,6 +49,7 @@
     "swagger-ui-express": "^4.6.3",
     "tutorials": "^1.0.0",
     "uuid": "^9.0.0",
+    "watchify": "^4.0.0",
     "ws": "^8.13.0"
   },
   "devDependencies": {

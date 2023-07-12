@@ -1,36 +1,36 @@
-const express = require('express');
-const router = express.Router();
+// const express = require('express');
+// const router = express.Router();
 
-const https = require('httpolyglot');
-const fs = require('fs');
-const path = require('path');
-const _dirname = path.resolve()
+// const https = require('httpolyglot');
+// const fs = require('fs');
+// const path = require('path');
+// const _dirname = path.resolve()
 
-const { Server } = require('socket.io');
+//const { Server } = require('socket.io');
 const mediasoup = require('mediasoup');
 
-router.get('/', (req, res) => {
-        res.send('Hello from mediasoup app!')
-    })
+// router.get('/', (req, res) => {
+//         res.send('Hello from mediasoup app!')
+//     })
 
 //정적파일 미들웨어 (public폴더)
-router.use('/sfu', express.static(path.join(_dirname, 'public')))
+// router.use('/sfu', express.static(path.join(_dirname, 'public')))
 
 // SSL cert for HTTPS access
-const options = {
-    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-}
+// const options = {
+//     key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+//     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+// }
 
-const httpsServer = https.createServer(options, router)
-httpsServer.listen(3001, () => {
-    console.log('listening on port: ' + 3001)
-})
+// const httpsServer = https.createServer(options, router)
+// httpsServer.listen(3001, () => {
+//     console.log('listening on port: ' + 3001)
+// })
 
-const io = new Server(httpsServer)
+// const io = new Server(httpsServer)
 
-// socket.io namespace (could represent a room?)
-const peers = io.of('/mediasoup')
+module.exports = (io) => {
+    const peers = io.of('/mediasoup')
 
 
 /**
@@ -42,7 +42,7 @@ const peers = io.of('/mediasoup')
  *         |-> Consumer 
  **/
 let worker
-let routers //바뀜 주의
+let Router //바뀜 주의
 let producerTransport
 let consumerTransport
 let producer
@@ -91,15 +91,14 @@ const mediaCodecs = [
 
 //소켓 연결
 peers.on('connection', async socket => {
-    //소켓 연결시 socket.id console
     console.log(socket.id)
     socket.emit('connection-success', {
+        //소켓 아이디 출력
         socketId: socket.id
     })
 
-    //소켓 해제시 해제 console
     socket.on('disconnect', () => {
-        // do some cleanup
+        //peer 연결 해제
         console.log('peer disconnected')
     })
 
@@ -108,14 +107,16 @@ peers.on('connection', async socket => {
     // mediaCodecs -> defined above
     // appData -> custom application data - we are not supplying any
     // none of the two are required
-    router = await worker.createRouter({ mediaCodecs, })
+    Router = await worker.createRouter({ mediaCodecs, })
 
     // Client emits a request for RTP Capabilities
     // This event responds to the request
+    //(2)
     socket.on('getRtpCapabilities', (callback) => {
 
-        const rtpCapabilities = router.rtpCapabilities
+        const rtpCapabilities = Router.rtpCapabilities
 
+        //rtp capabilities 출력
         console.log('rtp Capabilities', rtpCapabilities)
 
         // call callback from the client and send back the rtpCapabilities
@@ -124,6 +125,8 @@ peers.on('connection', async socket => {
 
     // Client emits a request to create server side Transport
     // We need to differentiate between the producer and consumer transports
+    //(4) // (6) - producer
+    //여기서 dtlsParameters 혹은 id 값을 못받는듯
     socket.on('createWebRtcTransport', async ({ sender }, callback) => {
         console.log(`Is this a sender request? ${sender}`)
         // The client indicates if it is a producer or a consumer
@@ -135,14 +138,18 @@ peers.on('connection', async socket => {
     })
 
     // see client's socket.emit('transport-connect', ...)
+    //(4)-1   producerTransport.on('connect'
     socket.on('transport-connect', async ({ dtlsParameters }) => {
+        console.log('(4)-1실행됨. dtlsParameters 밑에나옴')
         console.log('DTLS PARAMS... ', { dtlsParameters })
         await producerTransport.connect({ dtlsParameters })
     })
 
     // see client's socket.emit('transport-produce', ...)
+    //(4)-2   producerTransport.on('produce'
     socket.on('transport-produce', async ({ kind, rtpParameters, appData }, callback) => {
         // call produce based on the prameters from the client
+        console.log('(4)-2 실행됨 / Producer ID 밑에 나옴')
         producer = await producerTransport.produce({
         kind,
         rtpParameters,
@@ -150,6 +157,7 @@ peers.on('connection', async socket => {
 
         console.log('Producer ID: ', producer.id, producer.kind)
 
+        //(5) ??? connectSendTransport
         producer.on('transportclose', () => {
         console.log('transport for this producer closed ')
         producer.close()
@@ -162,15 +170,18 @@ peers.on('connection', async socket => {
     })
 
     // see client's socket.emit('transport-recv-connect', ...)
+    //(6)에 추가로 작동
+    //인척하는 (7)임
     socket.on('transport-recv-connect', async ({ dtlsParameters }) => {
         console.log(`DTLS PARAMS: ${dtlsParameters}`)
         await consumerTransport.connect({ dtlsParameters })
     })
 
+    //(7)
     socket.on('consume', async ({ rtpCapabilities }, callback) => {
         try {
         // check if the router can consume the specified producer
-        if (router.canConsume({
+        if (Router.canConsume({
             producerId: producer.id,
             rtpCapabilities
         })) {
@@ -211,20 +222,23 @@ peers.on('connection', async socket => {
         }
     })
 
+    //프론트 (7) 마지막 emit
     socket.on('consumer-resume', async () => {
         console.log('consumer resume')
         await consumer.resume()
+        console.log('resume완료')
     })
 });
 
+//(4), (6)
 const createWebRtcTransport = async (callback) => {
     try {
         // https://mediasoup.org/documentation/v3/mediasoup/api/#WebRtcTransportOptions
         const webRtcTransport_options = {
             listenIps: [
             {
-                ip: '0.0.0.0', // replace with relevant IP address
-                announcedIp: '127.0.0.1',
+                ip: '0.0.0.0', //'172.25.144.1', // replace with relevant IP address
+                announcedIp: '172.31.0.0/16', //'127.0.0.1',
             }
             ],
             enableUdp: true,
@@ -233,7 +247,7 @@ const createWebRtcTransport = async (callback) => {
         }
 
         // https://mediasoup.org/documentation/v3/mediasoup/api/#router-createWebRtcTransport
-        let transport = await router.createWebRtcTransport(webRtcTransport_options)
+        let transport = await Router.createWebRtcTransport(webRtcTransport_options)
         console.log(`transport id: ${transport.id}`)
 
         transport.on('dtlsstatechange', dtlsState => {
@@ -268,5 +282,4 @@ const createWebRtcTransport = async (callback) => {
             })
         }
 }
-
-module.exports = router;
+};
