@@ -247,7 +247,6 @@ const connectRecvTransport = async () => {
   await socket.emit('consume', {
     rtpCapabilities: device.rtpCapabilities,
   }, async ({ params }) => {
-    console.log(params)
     if (params.error) {
       console.log('Cannot Consume')
       return

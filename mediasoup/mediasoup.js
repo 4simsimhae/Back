@@ -226,6 +226,7 @@ peers.on('connection', async socket => {
     socket.on('consumer-resume', async () => {
         console.log('consumer resume')
         await consumer.resume()
+        console.log('resume완료')
     })
 });
 
