@@ -247,6 +247,7 @@ const connectRecvTransport = async () => {
   await socket.emit('consume', {
     rtpCapabilities: device.rtpCapabilities,
   }, async ({ params }) => {
+    console.log(params)
     if (params.error) {
       console.log('Cannot Consume')
       return
@@ -269,6 +270,7 @@ const connectRecvTransport = async () => {
 
     // the server consumer started with media paused
     // so we need to inform the server to resume
+    console.log('소켓 emit')
     socket.emit('consumer-resume')
   })
 }
