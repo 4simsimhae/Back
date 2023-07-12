@@ -297,7 +297,7 @@ async function updateRoomCount(roomId) {
     );
 }
 
-module.exports = (io) => {
+module.exports = async (io) => {
     io.of('/roomList').on('connection', (socket) => {
         // 빈방 삭제
         deleteEmptyRooms();
@@ -318,7 +318,6 @@ module.exports = (io) => {
                     socket.emit('error', response); // 수정: 에러를 클라이언트에게 보냄
                     return;
                 }
-
                 await socket.join(kategorieId);
                 const roomList = await getRoomList(kategorieId);
 
@@ -337,7 +336,7 @@ module.exports = (io) => {
     let data = [];
 
     // socket connection
-    io.on('connection', async (socket) => {
+    io.on('connection', (socket) => {
         // 토론자로 참여하기
         socket.on('joinDebate', async (roomId, kategorieId, done) => {
             try {
@@ -350,6 +349,8 @@ module.exports = (io) => {
                         return done(err.message);
                     }
                 });
+
+                socket.kategorieId = kategorieId;
 
                 const userInfo = await UserInfo.findOne({
                     where: { userId: socket.user.userId },
@@ -411,7 +412,7 @@ module.exports = (io) => {
                 }
 
                 // userInfo save
-                userInfo.save().then(() => {
+                await userInfo.save().then(() => {
                     done();
 
                     // userData 생성
@@ -474,68 +475,20 @@ module.exports = (io) => {
 
                 // 방 나가기
                 socket.on('leave_room', async (done) => {
-                    // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
-                    // data = data.filter(
-                    //     (data) => data.userId !== socket.user.userId
-                    // );
                     done();
                     socket.on('disconnecting', async () => {
-                        // 나갈 유저 데이터 새로 불러오기
-                        const exitUserInfo = await UserInfo.findOne({
-                            where: { userId: socket.user.userId },
-                        });
-
                         console.log(
-                            '종료한 유저의 호스트 값 = ',
-                            exitUserInfo.host
+                            '4. joinDebate 내부 leave_room disconnecting'
                         );
-
-                        if (exitUserInfo.host === 1) {
-                            const newHost = await UserInfo.findOne({
-                                where: {
-                                    roomId,
-                                    host: 0,
-                                    debater: 1,
-                                },
-                            });
-                            console.log(!!newHost);
-                            if (newHost) {
-                                newHost.host = 1;
-                                await newHost.save();
-                                data.map((data) => {
-                                    if (data.userId === newHost.userId) {
-                                        data.host = 1;
-                                    }
-                                });
-                                console.log('바뀐 데이터 = ', data);
-                                io.to(roomId).emit(
-                                    'changeHost',
-                                    newHost.userId
-                                );
-                            }
-                        }
-                        // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
+                        // 나간 유저 정보 Data 배열에서 삭제
                         data = data.filter(
                             (userData) => userData.userId !== socket.user.userId
                         );
-                        console.log('업데이트된 데이터 = ', data);
-
-                        console.log('유저정보 초기화 시작');
-
-                        // 나갈 유저정보 초기화
-                        userInfo.host = 0;
-                        userInfo.debater = 0;
-                        userInfo.like = 0;
-                        userInfo.hate = 0;
-                        userInfo.questionMark = 0;
-                        userInfo.roomId = 0;
-                        await userInfo.save();
 
                         // 방 퇴장 유저 nickName 프론트로 전달
                         io.to(roomId).emit('roomLeft', socket.nickName);
-
                         // 방 퇴장 후 남아있는 userData 보내기
-                        io.to(roomId).emit('roomJoined', data);
+                        // io.to(roomId).emit('roomJoined', data);
 
                         // 방 인원 체크후 db업데이트
                         await updateRoomCount(roomId);
@@ -552,16 +505,23 @@ module.exports = (io) => {
                             .emit('update_roomList', roomList);
                         // // 유저 IP 정보 삭제
                         // ipInfoDeleteFunc();
-                        console.log(
-                            '방 나가기로 인해 정상적으로 소켓 연결이 끊겼습니다.'
-                        );
                     });
                     // 소켓 연결 끊기
                     // socket.disconnect();
                 });
 
                 // socket disconnecting
-                socket.on('disconnecting', async () => {});
+                socket.on('disconnecting', async () => {
+                    console.log('2. joinDebate disconnecting');
+                    // 나갈 유저정보 초기화
+                    userInfo.host = 0;
+                    userInfo.debater = 0;
+                    userInfo.roomId = 0;
+                    userInfo.like = 0;
+                    userInfo.hate = 0;
+                    userInfo.questionMark = 0;
+                    await userInfo.save();
+                });
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
                 socket.emit('error', '토론자 참여 처리에 실패했습니다.');
@@ -580,6 +540,8 @@ module.exports = (io) => {
                         return done(err.message);
                     }
                 });
+
+                socket.kategorieId = kategorieId;
 
                 const userInfo = await UserInfo.findOne({
                     where: { userId: socket.user.userId },
@@ -614,7 +576,7 @@ module.exports = (io) => {
                 userInfo.nickName = socket.nickName;
 
                 // userInfo save
-                userInfo.save().then(() => {
+                await userInfo.save().then(() => {
                     done();
 
                     // userData 생성
@@ -678,6 +640,9 @@ module.exports = (io) => {
                 socket.on('leave_room', async (done) => {
                     done();
                     socket.on('disconnecting', async () => {
+                        console.log(
+                            '5. joinJuror 내부 leave_room disconnecting'
+                        );
                         // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
                         data = data.filter(
                             (data) => data.userId !== userInfo.userId
@@ -694,7 +659,7 @@ module.exports = (io) => {
 
                         // 방 퇴장 후 남아있는 userData 보내기
                         io.to(roomId).emit('roomJoined', data);
-                        console.log('data =', data);
+                        // console.log('data =', data);
 
                         // 방 인원 체크후 db업데이트
                         await updateRoomCount(roomId);
@@ -708,14 +673,19 @@ module.exports = (io) => {
                         io.of('/roomList')
                             .to(kategorieId)
                             .emit('update_roomList', roomList);
-                        console.log(
-                            '방 나가기로 인해 정상적으로 소켓 연결이 끊겼습니다.'
-                        );
+                        // console.log(
+                        //     '방 나가기로 인해 정상적으로 소켓 연결이 끊겼습니다.'
+                        // );
                     });
                 });
 
                 // socket disconnecting
-                socket.on('disconnecting', async () => {});
+                socket.on('disconnecting', async () => {
+                    console.log('3. joinJurror disconnecting');
+                    data = data.filter(
+                        (data) => data.userId !== userInfo.userId
+                    );
+                });
             } catch (error) {
                 console.error('배심원 참여 처리 실패:', error);
                 socket.emit('error', '배심원 참여 처리에 실패했습니다.');
@@ -837,33 +807,27 @@ module.exports = (io) => {
 
         let debater1Count = 0;
         let debater2Count = 0;
-
         socket.on('vote', async (roomId, host) => {
             try {
                 // 룸 정의
                 const room = await Room.findOne({
                     where: { roomId },
                 });
-
                 // 투표 인원 체크
                 const panelCount = room.panel;
                 console.log('배심원수 = ', panelCount);
-
                 // 1번 토론자 조회
                 const debaterUser1 = await UserInfo.findOne({
                     where: { roomId, host: 1, debater: 1 },
-                    attributes: ['userId', 'nickName'],
+                    attributes: ['userId', 'nickName', 'debater'],
                 });
-
                 // 2번 토론자 조회
                 const debaterUser2 = await UserInfo.findOne({
                     where: { roomId, host: 0, debater: 1 },
-                    attributes: ['userId', 'nickName'],
+                    attributes: ['userId', 'nickName', 'debater'],
                 });
-
                 console.log('토론자1', debaterUser1.nickName);
                 console.log('토론자2', debaterUser2.nickName);
-
                 // 데이터베이스에서 Vote 레코드를 조회하거나 생성
                 let voteRecord = await Vote.findOne({ where: { roomId } });
                 if (!voteRecord) {
@@ -873,28 +837,23 @@ module.exports = (io) => {
                         debater2Count: 0,
                     });
                 }
-
                 // 전달받은 host값이 1이면 1번토론자 투표수 증가 , 0이면 2번토론자 투표수 증가
                 if (host === 1) {
                     await voteRecord.increment('debater1Count');
                 } else if (host === 0) {
                     await voteRecord.increment('debater2Count');
                 }
-
                 // 투표 수 가져오기
                 await voteRecord.reload();
                 const voteCount =
                     voteRecord.debater1Count + voteRecord.debater2Count;
                 console.log('투표수', voteCount);
-
                 if (voteCount === panelCount) {
                     console.log('투표종료');
-
                     let winner;
                     let loser;
                     let winnerCount;
                     let loserCount;
-
                     if (voteRecord.debater1Count > voteRecord.debater2Count) {
                         winner = debaterUser1;
                         winnerCount = voteRecord.debater1Count;
@@ -906,7 +865,6 @@ module.exports = (io) => {
                         loser = debaterUser1;
                         loserCount = voteRecord.debater1Count;
                     }
-
                     const voteResult = {
                         winner: winner.nickName,
                         winnerCount: winnerCount,
@@ -918,46 +876,129 @@ module.exports = (io) => {
                         `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`
                     );
                     console.log('voteResult', voteResult);
-
                     io.to(roomId).emit('voteResult', voteResult);
-
                     // 투표 종료 후 데이터 보내주고 voteCount 초기화
                     voteRecord.debater1Count = 0;
                     voteRecord.debater2Count = 0;
                     await voteRecord.save();
-                    console.log('1번 투표수 초기화', voteRecord.debater1Count);
-                    console.log('2번 투표수 초기화', voteRecord.debater2Count);
-
+                    console.log('투표수 초기화', voteRecord.debater1Count);
+                    console.log('투표수 초기화', voteRecord.debater2Count);
                     // winner 정보 초기화
-                    await UserInfo.update(
-                        {
-                            like: 0,
-                            hate: 0,
-                            questionMark: 0,
-                            debater: 1,
-                            host: 1,
-                        },
-                        { where: { userId: winner.userId } }
+                    // await UserInfo.update(
+                    //     {
+                    //         like: 0,
+                    //         hate: 0,
+                    //         questionMark: 0,
+                    //         debater: 1,
+                    //         host: 1,
+                    //     },
+                    //     { where: { userId: winner.userId } }
+                    // );
+                    // // loser 정보 초기화
+                    // await UserInfo.update(
+                    //     {
+                    //         like: 0,
+                    //         hate: 0,
+                    //         questionMark: 0,
+                    //         debater: 0,
+                    //         host: 0,
+                    //         roomId: 0,
+                    //     },
+                    //     { where: { userId: loser.userId } }
+                    // );
+                    console.log('승자 닉네임', winner.nickName);
+                    console.log('승자 디베이터', winner.debater);
+                    console.log('데이터 =', data);
+                    // data = data.map((item) =>
+                    //     item.userId === winner.userId
+                    //         ? { ...item, host: 1, debater: 1 }
+                    //         : item
+                    // );
+                    // data = data.map((item) =>
+                    //     item.userId === loser.userId
+                    //         ? { ...item, host: 0, debater: 0 }
+                    //         : item
+                    // );
+                    console.log('투표후', data);
+                    console.log('패배자Id', loser.userId);
+                    // loser 퇴장 시키기
+                    // 소켓 정보 가져오기
+                    const allSockets = io.sockets.sockets;
+                    // 소켓 배열에서 loserSocket 조회
+                    const loserSocket = Array.from(allSockets).find(
+                        ([_, socket]) => {
+                            return (
+                                socket.nickName === loser.nickName &&
+                                socket.rooms.has(roomId)
+                            );
+                        }
                     );
 
-                    // loser 정보 초기화
-                    await UserInfo.update(
-                        {
-                            like: 0,
-                            hate: 0,
-                            questionMark: 0,
-                            debater: 0,
-                            host: 0,
-                        },
-                        { where: { userId: loser.userId } }
-                    );
+                    if (loserSocket) {
+                        const socket = loserSocket[1];
+                        socket.leave(roomId);
+
+                        // data 배열에서 패배자 삭제
+                        socket.emit('loserExit', socket.user.userId);
+                        console.log('0');
+                    } else {
+                        console.log(
+                            `${loser.nickName}의 소켓을 찾을 수 없습니다.`
+                        );
+                    }
                 } else {
-                    console.log('배심원이 투표헀습니다.');
+                    console.log('debater 에게 투표가 되었습니다.');
                 }
+                socket.on('disconnecting', () => {
+                    console.log('6. vote disconnecting');
+                });
             } catch (error) {
                 console.error('투표 처리 실패:', error);
                 socket.emit('error', '투표 처리에 실패했습니다.');
             }
+        });
+
+        socket.on('disconnecting', async () => {
+            console.log('1. connection disconnecting');
+            const exitUserInfo = await UserInfo.findOne({
+                where: { userId: socket.user.userId },
+            });
+
+            console.log('1. 종료한 유저의 호스트 값 = ', exitUserInfo.host);
+
+            if (exitUserInfo.host === 1) {
+                const newHost = await UserInfo.findOne({
+                    where: {
+                        roomId: socket.roomId,
+                        host: 0,
+                        debater: 1,
+                    },
+                });
+                if (newHost) {
+                    newHost.host = 1;
+                    await newHost.save();
+                    data.map((data) => {
+                        if (data.userId === newHost.userId) {
+                            data.host = 1;
+                        }
+                    });
+                    io.to(socket.roomId).emit('changeHost', newHost.userId);
+                }
+            }
+            data = data.filter((item) => item.userId !== socket.user.userId);
+
+            // 방 퇴장 후 남아있는 userData 보내기
+            io.to(socket.roomId).emit('roomJoined', data);
+
+            // 방 인원 체크후 db업데이트
+            await updateRoomCount(socket.roomId);
+
+            const roomList = await getRoomList(socket.kategorieId);
+
+            // 네임스페이스에 룸리스트 보내기
+            io.of('/roomList')
+                .to(socket.kategorieId)
+                .emit('update_roomList', roomList);
         });
     });
 };
