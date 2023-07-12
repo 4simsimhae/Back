@@ -850,11 +850,34 @@ module.exports = async (io) => {
                 console.log('투표수', voteCount);
                 if (voteCount === panelCount) {
                     console.log('투표종료');
+
                     let winner;
                     let loser;
                     let winnerCount;
                     let loserCount;
-                    if (voteRecord.debater1Count > voteRecord.debater2Count) {
+                    if (voteRecord.debater1Count === voteRecord.debater2Count) {
+                        console.log('무승부 입니다.');
+
+                        const voteResult = {
+                            debater1: debaterUser1.nickName,
+                            debater1Count: voteRecord.debater1Count,
+                            debater2: debaterUser2.nickName,
+                            debater2Count: voteRecord.debater2Count,
+                        };
+                        io.to(roomId).emit('voteResult', voteResult);
+                        console.log('voteResult =', voteResult);
+
+                        // 투표 종료 후 데이터 보내주고 voteCount 초기화
+                        voteRecord.debater1Count = 0;
+                        voteRecord.debater2Count = 0;
+                        await voteRecord.save();
+                        console.log('투표수 초기화', voteRecord.debater1Count);
+                        console.log('투표수 초기화', voteRecord.debater2Count);
+
+                        return;
+                    } else if (
+                        voteRecord.debater1Count > voteRecord.debater2Count
+                    ) {
                         winner = debaterUser1;
                         winnerCount = voteRecord.debater1Count;
                         loser = debaterUser2;
