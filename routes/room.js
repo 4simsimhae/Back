@@ -130,7 +130,7 @@ router.post(
     async (req, res) => {
         try {
             const { userId } = res.locals.user;
-            console.log('디코드된 유저정보 = ', res.locals.user);
+            // console.log('디코드된 유저정보 = ', res.locals.user);
             const { kategorieId } = req.params;
             const newroomName = res.locals.random; //openAPI로 이름받기
             const { kategorieName } = await Kategorie.findOne({
@@ -221,7 +221,7 @@ router.post(
 router.put('/user', checkLogin, randomNickName, async (req, res) => {
     try {
         const { userId } = res.locals.user;
-        console.log('디코드된 유저정보 = ', res.locals.user);
+        // console.log('디코드된 유저정보 = ', res.locals.user);
         const randomName = res.locals.random; //openAPI로 이름받기
 
         //userInfo 수정
@@ -279,7 +279,7 @@ router.put('/user', checkLogin, randomNickName, async (req, res) => {
             ]);
             return res.status(200).json(response);
         } else {
-            console.log('정보 있음 = ', res.locals.user);
+            // console.log('정보 있음 = ', res.locals.user);
             //로그인 유저라면 정보 수정하기!
             await UserInfo.update(
                 {

@@ -9,7 +9,7 @@ class ApiResponse {
 }
 
 module.exports = async (req, res, next) => {
-    console.log('1111111111');
+    console.log('****** 랜덤 닉네임 생성 미들웨어 시작 ******');
     try {
         const firstName = [
             '등짝스매싱 맞은',
@@ -84,6 +84,7 @@ module.exports = async (req, res, next) => {
         console.log('name = ', nickName);
         console.log('-------------');
         res.locals.random = nickName;
+        console.log('****** 랜덤 닉네임 생성 미들웨어 확인 완료 ******');
         next();
     } catch (error) {
         return res.status(500).json({ errorMessage: '' });

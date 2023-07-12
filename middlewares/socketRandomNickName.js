@@ -1,4 +1,5 @@
 module.exports = async (socket, next) => {
+    console.log('****** 소켓 랜덤 닉네임 시작 ******');
     try {
         const firstName = [
             '등짝스매싱 맞은',
@@ -65,10 +66,9 @@ module.exports = async (socket, next) => {
         const selectedB = lastName[randomBIndex];
 
         const nickName = selectedA + ' ' + selectedB;
-        if (!socket.locals) {
-            socket.locals = {};
-        }
-        socket.locals.random = nickName;
+
+        socket.nickName = nickName;
+        console.log('****** 소켓 랜덤 닉네임 확인 완료 ******');
         next();
     } catch (error) {
         console.error('닉네임 부여 실패:', error);
