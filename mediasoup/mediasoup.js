@@ -234,7 +234,7 @@ peers.on('connection', async socket => {
 let listenip;
 let announceip;
 if (process.platform === "linux") {
-    listenip = "172.31.12.132";
+    listenip = "0.0.0.0";
     announceip = "3.39.254.76";
 } else {
     listenip = "127.0.0.1";
