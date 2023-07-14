@@ -39,6 +39,9 @@ module.exports = (sequelize, DataTypes) => {
             panel: {
                 type: DataTypes.INTEGER,
             },
+            gameStart: {
+                type: DataTypes.INTEGER,
+            },
             createdAt: {
                 allowNull: false,
                 type: DataTypes.DATE,

@@ -36,6 +36,9 @@ module.exports = {
             debater: {
                 type: Sequelize.INTEGER,
             },
+            debatePosition: {
+                type: Sequelize.INTEGER,
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,

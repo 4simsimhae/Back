@@ -50,6 +50,9 @@ module.exports = (sequelize, DataTypes) => {
             debater: {
                 type: DataTypes.INTEGER,
             },
+            debatePosition: {
+                type: DataTypes.INTEGER,
+            },
             createdAt: {
                 allowNull: false,
                 type: DataTypes.DATE,

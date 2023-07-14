@@ -141,6 +141,7 @@ router.post(
             //만약 로그인 유저가 아니라면 오류!
             console.log('토큰안에 어떤정보가 담겨있냐 = ', userId);
             if (!userId) {
+                console.log('유저 없음');
                 const response = new ApiResponse(
                     403,
                     '로그인이 필요한 서비스입니다.'
@@ -150,6 +151,7 @@ router.post(
 
             //잘못된 kategorieId
             if (kategorieId > 8 || kategorieId < 1) {
+                console.log('카테고리 잘못됨');
                 const response = new ApiResponse(
                     403,
                     '해당 카테고리를 찾을 수 없습니다.'
@@ -161,14 +163,18 @@ router.post(
             const roomName = newroomName;
             const debater = 0;
             const panel = 0;
+            const gameStart = 0;
 
             const createdRoom = await Room.create({
                 kategorieId,
                 kategorieName,
                 roomName,
                 debater,
+                gameStart,
                 panel,
             });
+            console.log('방생성 완료');
+
             const roomId = createdRoom.roomId;
 
             const roomlist = await Room.findAll({
@@ -178,6 +184,7 @@ router.post(
                     'KategorieName',
                     'roomName',
                     'debater',
+                    'gameStart',
                     'panel',
                 ],
                 where: { roomId },
