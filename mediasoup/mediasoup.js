@@ -173,6 +173,7 @@ peers.on('connection', async socket => {
     //(6)에 추가로 작동
     //인척하는 (7)임
     socket.on('transport-recv-connect', async ({ dtlsParameters }) => {
+        console.log('(6)추가부분 실행됨. 아래 DTLS PARAMS 출력됨')
         console.log(`DTLS PARAMS: ${dtlsParameters}`)
         await consumerTransport.connect({ dtlsParameters })
     })
@@ -181,6 +182,7 @@ peers.on('connection', async socket => {
     socket.on('consume', async ({ rtpCapabilities }, callback) => {
         try {
         // check if the router can consume the specified producer
+        console.log('rtcCapabilities를 잘 받아오나요? = ', rtpCapabilities);
         if (Router.canConsume({
             producerId: producer.id,
             rtpCapabilities
@@ -226,7 +228,6 @@ peers.on('connection', async socket => {
     socket.on('consumer-resume', async () => {
         console.log('consumer resume')
         await consumer.resume()
-        console.log('resume완료')
     })
 });
 
