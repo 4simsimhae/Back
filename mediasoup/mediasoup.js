@@ -231,17 +231,6 @@ peers.on('connection', async socket => {
     })
 });
 
-let listenip;
-let announceip;
-if (process.platform === "linux") {
-    listenip = "0.0.0.0";
-    announceip = "3.39.254.76";
-} else {
-    listenip = "127.0.0.1";
-    announceip = null;
-}
-console.log("🎧 listenip is : ", listenip);
-
 //(4), (6)
 const createWebRtcTransport = async (callback) => {
     try {
@@ -250,9 +239,9 @@ const createWebRtcTransport = async (callback) => {
         const webRtcTransport_options = {
             listenIps: [
             {
-                ip: listenip, //private ip 주소
+                ip: "0.0.0.0", //private ip 주소
                 //'172.31.12.132',
-                announcedIp: announceip, //public ip 주소
+                announcedIp: '172.31.0.0/16', //public ip 주소
                 //'172.31.0.0/16', '172.31.0.0/20', '3.39.254.76'
             }
             ],
