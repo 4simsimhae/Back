@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 //정적파일 미들웨어 (public폴더)
-app.use('/sfu', express.static(path.join(_dirname, 'public')))
+app.use('/sfu/:room', express.static(path.join(_dirname, 'public')))
 
 //CORS 설정
 const cors = require('cors');
