@@ -401,9 +401,9 @@ connections.on('connection', async socket => {
         
         let listenip;
         let announceip;
-        if (process.platform === "Linux") {
+        if (process.platform === "linux") {
             listenip = "0.0.0.0";
-            announceip = "3.39.254.76";
+            announceip = "http://simsimhae-env.eba-je4tx33q.ap-northeast-2.elasticbeanstalk.com";
         } else {
             listenip = "127.0.0.1";
             announceip = null;
@@ -417,8 +417,8 @@ connections.on('connection', async socket => {
                     const webRtcTransport_options = {
                     listenIps: [
                         {
-                            ip: listenip, // replace with relevant IP address
-                            announcedIp: announceip,
+                            ip: "0.0.0.0", // replace with relevant IP address
+                            announcedIp: "http://simsimhae-env.eba-je4tx33q.ap-northeast-2.elasticbeanstalk.com",
                         }
                     ],
                     enableUdp: true,
