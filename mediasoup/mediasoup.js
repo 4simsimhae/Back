@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const _dirname = path.resolve()
 
-const { Server } = require('socket.io');
+const { Server } = require('socket.io'); //
 const mediasoup = require('mediasoup');
 
 Router.get('/', (req, res) => {
@@ -30,7 +30,7 @@ httpsServer.listen(3001, () => {
 const io = new Server(httpsServer)
 
 //module.exports = (io) => {
-    const connections = io.of('/mediasoup')
+const connections = io.of('/mediasoup')
 
 
 /**
