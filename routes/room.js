@@ -1,7 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { User, Kategorie, UserInfo, Room, subject, chat } = require('../models');
+const {
+    User,
+    Kategorie,
+    UserInfo,
+    Room,
+    subject,
+    chat,
+    Vote,
+} = require('../models');
 const randomName = require('../middlewares/randomName.js');
 const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 const randomNickName = require('../middlewares/randomNickName.js');
@@ -176,6 +184,13 @@ router.post(
             console.log('방생성 완료');
 
             const roomId = createdRoom.roomId;
+
+            // test
+            await Vote.create({
+                roomId,
+                debater1Count: 0,
+                debater2Count: 0,
+            });
 
             const roomlist = await Room.findAll({
                 //방정보 불러오기 후 보내기

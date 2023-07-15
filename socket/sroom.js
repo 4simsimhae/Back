@@ -531,7 +531,7 @@ module.exports = async (io) => {
         });
 
         // 게임 시작
-        socket.on('show_roulette', async (result, kategorieId, done) => {
+        socket.on('show_roulette', async (result, kategorieId) => {
             try {
                 // roomId 추출
                 const roomId = socket.roomId;
@@ -573,8 +573,6 @@ module.exports = async (io) => {
                     randomSubjectArr,
                     result
                 );
-
-                done();
             } catch (error) {
                 console.error('주제 룰렛 실행 실패:', error);
                 socket.emit('error', '주제 룰렛 실행에 실패했습니다.');
@@ -638,32 +636,91 @@ module.exports = async (io) => {
             io.to(roomId).emit('close_result', result);
         });
 
-        socket.on(
-            'close_roulette',
-            async (result, roomId, kategorieId, done) => {
-                // 토론자 찬성, 반대 랜덤으로 선정
-                // UserInfo 테이블에서 roomId과 debater가 1인 사용자 목록 조회
-                const debaterList = await UserInfo.findAll({
-                    where: {
-                        roomId,
-                        debater: 1,
-                    },
+        socket.on('close_roulette', async (result, roomId, kategorieId) => {
+            // 토론자 찬성, 반대 랜덤으로 선정
+            // UserInfo 테이블에서 roomId과 debater가 1인 사용자 목록 조회
+            const debaterList = await UserInfo.findAll({
+                where: {
+                    roomId,
+                    debater: 1,
+                },
+            });
+
+            // 랜덤으로 토론자 2명 선택
+            const randomDebaters = getRandomDebaters(debaterList, 2);
+
+            // 선택된 토론자에게 랜덤한 debatePosition 할당
+            const positions = [0, 1];
+            randomDebaters.forEach((debater) => {
+                const randomPosition = getRandomPosition(positions);
+                debater.debatePosition = randomPosition;
+                debater.save();
+            });
+
+            // 게임상태 진행중으로 변경
+            await Room.update({ gameStart: 1 }, { where: { roomId } });
+            // 룸리스트 갱신
+            const roomList = await getRoomList(kategorieId);
+
+            // 네임스페이스에 룸리스트 보내기
+            io.of('/roomList')
+                .to(kategorieId)
+                .emit('update_roomList', roomList);
+
+            // 선택된 토론자의 정보를 프론트로 전달
+            const debatersInfo = randomDebaters.map((debater) => ({
+                userId: debater.userId,
+                host: debater.host,
+                debatePosition: debater.debatePosition,
+            }));
+            console.log('프론트 전달 data', debatersInfo);
+
+            io.to(roomId).emit('close_roulette', result, debatersInfo);
+        });
+
+        let debater1Count = 0;
+        let debater2Count = 0;
+
+        // 투표 결과 확인하기
+        const checkVoteFunc = async (
+            roomId,
+            kategorieId,
+            voteRecord,
+            debaterUser1,
+            debaterUser2
+        ) => {
+            console.log('투표종료');
+
+            let winner;
+            let loser;
+            let winnerCount;
+            let loserCount;
+
+            if (voteRecord.debater1Count === voteRecord.debater2Count) {
+                console.log('뭐여 무승부여?');
+                const voteResult = {
+                    debater1: debaterUser1.userId,
+                    debater1Count: voteRecord.debater1Count,
+                    debater2: debaterUser2.userId,
+                    debater2Count: voteRecord.debater2Count,
+                };
+
+                // socket으로 변경
+                await socket.to(roomId).emit('voteResult', voteResult, () => {
+                    socket.to(roomId).emit('roomJoined', data);
                 });
 
-                // 랜덤으로 토론자 2명 선택
-                const randomDebaters = getRandomDebaters(debaterList, 2);
+                voteRecord.debater1Count = 0;
+                voteRecord.debater2Count = 0;
 
-                // 선택된 토론자에게 랜덤한 debatePosition 할당
-                const positions = [0, 1];
-                randomDebaters.forEach((debater) => {
-                    const randomPosition = getRandomPosition(positions);
-                    debater.debatePosition = randomPosition;
-                    debater.save();
-                });
+                await voteRecord.save();
 
-                // 게임상태 진행중으로 변경
-                await Room.update({ gameStart: 1 }, { where: { roomId } });
-                // 룸리스트 갱신
+                console.log('(무승부)투표수 초기화', voteRecord.debater1Count);
+                console.log('(무승부)투표수 초기화', voteRecord.debater2Count);
+
+                // 투표 종료 후 room 상태 게임종료 로 업데이트
+                await Room.update({ gameStart: 0 }, { where: { roomId } });
+
                 const roomList = await getRoomList(kategorieId);
 
                 // 네임스페이스에 룸리스트 보내기
@@ -671,22 +728,82 @@ module.exports = async (io) => {
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
 
-                // 선택된 토론자의 정보를 프론트로 전달
-                const debatersInfo = randomDebaters.map((debater) => ({
-                    userId: debater.userId,
-                    host: debater.host,
-                    debatePosition: debater.debatePosition,
-                }));
-                console.log('프론트 전달 data', debatersInfo);
+                return;
+            } else if (voteRecord.debater1Count > voteRecord.debater2Count) {
+                console.log('방장이 이겼네');
 
-                io.to(roomId).emit('close_roulette', result, debatersInfo);
+                winner = debaterUser1;
+                winnerCount = voteRecord.debater1Count;
+                loser = debaterUser2;
+                loserCount = voteRecord.debater2Count;
+            } else {
+                console.log('도전자가 이겼네');
+
+                winner = debaterUser2;
+                winnerCount = voteRecord.debater2Count;
+                loser = debaterUser1;
+                loserCount = voteRecord.debater1Count;
             }
-        );
+            const voteResult = {
+                winner: winner.userId,
+                winnerNickName: winner.nickName,
+                winnerCount: winnerCount,
+                loser: loser.userId,
+                loserCount: loserCount,
+            };
 
-        let debater1Count = 0;
-        let debater2Count = 0;
-        socket.on('vote', async (roomId, host, kategorieId) => {
-            console.log('투표 시 받아온 호스트 값', host);
+            console.log(
+                '투표 결과',
+                `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`
+            );
+
+            console.log('voteResult', voteResult);
+
+            // socket으로 변경
+            await socket.to(roomId).emit('voteResult', voteResult);
+
+            // 투표 종료 후 데이터 보내주고 voteCount 초기화
+            voteRecord.debater1Count = 0;
+            voteRecord.debater2Count = 0;
+
+            await voteRecord.save();
+
+            // 투표 종료 후 room 상태 게임종료 로 업데이트
+            await Room.update({ gameStart: 0 }, { where: { roomId } });
+
+            console.log('(결과나옴)투표수 초기화', voteRecord.debater1Count);
+            console.log('(결과나옴)투표수 초기화', voteRecord.debater2Count);
+            console.log('승자 닉네임', winner.nickName);
+            console.log('승자 디베이터', winner.debater);
+            console.log('데이터 =', data);
+            console.log('투표후', data);
+            console.log('패배자Id', loser.userId);
+
+            // loser 퇴장 시키기
+            // 소켓 정보 가져오기
+            const allSockets = io.sockets.sockets;
+
+            // 소켓 배열에서 loserSocket 조회
+            const loserSocket = Array.from(allSockets).find(([_, socket]) => {
+                return (
+                    socket.nickName === loser.nickName &&
+                    socket.rooms.has(roomId)
+                );
+            });
+
+            if (loserSocket) {
+                const socket = loserSocket[1];
+                socket.leave(roomId);
+
+                // data 배열에서 패배자 삭제
+                socket.emit('loserExit', socket.user.userId);
+                console.log('0');
+            } else {
+                console.log(`${loser.nickName}의 소켓을 찾을 수 없습니다.`);
+            }
+        };
+
+        /*  const checkVoteEndFunc = async (roomId, kategorieId, voteRecord) => {
             try {
                 // 룸 정의
                 const room = await Room.findOne({
@@ -707,24 +824,6 @@ module.exports = async (io) => {
                 });
                 console.log('토론자1', debaterUser1.nickName);
                 console.log('토론자2', debaterUser2.nickName);
-                // 데이터베이스에서 Vote 레코드를 조회하거나 생성
-                let voteRecord = await Vote.findOne({ where: { roomId } });
-                if (!voteRecord) {
-                    voteRecord = await Vote.create({
-                        roomId,
-                        debater1Count: 0,
-                        debater2Count: 0,
-                    });
-                }
-                console.log('순서대로 진행되는 지 확인');
-                // 전달받은 host값이 1이면 1번토론자 투표수 증가 , 0이면 2번토론자 투표수 증가
-                if (host === 1) {
-                    console.log('호스트 투표');
-                    await voteRecord.increment('debater1Count');
-                } else if (host === 0) {
-                    console.log('도전자 투표');
-                    await voteRecord.increment('debater2Count');
-                }
 
                 // 투표 수 가져오기
                 await voteRecord.reload();
@@ -864,6 +963,95 @@ module.exports = async (io) => {
                 console.error('투표 처리 실패:', error);
                 socket.emit('error', '투표 처리에 실패했습니다.');
             }
+        }; */
+
+        socket.on('vote', async (roomId, host) => {
+            console.log('투표 시 받아온 호스트 값', host);
+
+            // 데이터베이스에서 Vote 레코드를 조회하거나 생성
+            const voteRecord = await Vote.findOne({ where: { roomId } });
+            // if (!voteRecord) {
+            //     voteRecord = await Vote.create({
+            //         roomId,
+            //         debater1Count: 0,
+            //         debater2Count: 0,
+            //     });
+            // }
+            console.log('순서대로 진행되는 지 확인');
+            // 전달받은 host값이 1이면 1번토론자 투표수 증가 , 0이면 2번토론자 투표수 증가
+            if (host === 1) {
+                console.log('호스트 투표');
+                await voteRecord.increment('debater1Count');
+            } else if (host === 0) {
+                console.log('도전자 투표');
+                await voteRecord.increment('debater2Count');
+            }
+            // checkVoteEndFunc(roomId, kategorieId, voteRecord);
+        });
+
+        // 30초 이후에는 무조건 투표결과 보내기
+        let timer = 30;
+        socket.on('voteStart', async (roomId, kategorieId, done) => {
+            let voteRecord = await Vote.findOne({ where: { roomId } });
+
+            const room = await Room.findOne({
+                where: { roomId },
+            });
+
+            const panelCount = room.panel;
+
+            // 1번 토론자 조회
+            const debaterUser1 = await UserInfo.findOne({
+                where: { roomId, host: 1, debater: 1 },
+                attributes: ['userId', 'nickName', 'debater'],
+            });
+
+            // 2번 토론자 조회
+            const debaterUser2 = await UserInfo.findOne({
+                where: { roomId, host: 0, debater: 1 },
+                attributes: ['userId', 'nickName', 'debater'],
+            });
+
+            const test = setInterval(async () => {
+                if (timer !== 0) {
+                    await voteRecord.reload();
+
+                    const voteCount =
+                        voteRecord.debater1Count + voteRecord.debater2Count;
+
+                    console.log('투표수', voteCount);
+
+                    if (voteCount === panelCount) {
+                        clearInterval(test);
+                        timer = 30;
+                        checkVoteFunc(
+                            roomId,
+                            kategorieId,
+                            voteRecord,
+                            debaterUser1,
+                            debaterUser2
+                        );
+                        done();
+                    } else {
+                        timer -= 1;
+                        console.log(timer);
+                        // test
+                        socket.emit('sendRemainTime', timer.toString());
+                    }
+                } else {
+                    clearInterval(test);
+                    timer = 30;
+
+                    checkVoteFunc(
+                        roomId,
+                        kategorieId,
+                        voteRecord,
+                        debaterUser1,
+                        debaterUser2
+                    );
+                    done();
+                }
+            }, 1000);
         });
 
         socket.on('disconnecting', async () => {
