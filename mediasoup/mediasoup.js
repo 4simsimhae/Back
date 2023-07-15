@@ -1,35 +1,35 @@
-// const express = require('express');
-// const router = express.Router();
+const express = require('express');
+const Router = express.Router();
 
-// const https = require('httpolyglot');
-// const fs = require('fs');
-// const path = require('path');
-// const _dirname = path.resolve()
+const https = require('httpolyglot');
+const fs = require('fs');
+const path = require('path');
+const _dirname = path.resolve()
 
-//const { Server } = require('socket.io');
+const { Server } = require('socket.io');
 const mediasoup = require('mediasoup');
 
-// router.get('/', (req, res) => {
-//         res.send('Hello from mediasoup app!')
-//     })
+Router.get('/', (req, res) => {
+        res.send('Hello from mediasoup app!')
+    })
 
 //정적파일 미들웨어 (public폴더)
-// router.use('/sfu', express.static(path.join(_dirname, 'public')))
+Router.use('/sfu', express.static(path.join(_dirname, 'public')))
 
 // SSL cert for HTTPS access
-// const options = {
-//     key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-//     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-// }
+const options = {
+    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+}
 
-// const httpsServer = https.createServer(options, router)
-// httpsServer.listen(3001, () => {
-//     console.log('listening on port: ' + 3001)
-// })
+const httpsServer = https.createServer(options, Router)
+httpsServer.listen(3001, () => {
+    console.log('listening on port: ' + 3001)
+})
 
-// const io = new Server(httpsServer)
+const io = new Server(httpsServer)
 
-module.exports = (io) => {
+//module.exports = (io) => {
     const connections = io.of('/mediasoup')
 
 
@@ -447,4 +447,6 @@ connections.on('connection', async socket => {
                 }
             })
         }
-};
+//};
+
+module.exports = Router;
