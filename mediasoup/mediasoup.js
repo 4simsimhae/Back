@@ -402,7 +402,7 @@ connections.on('connection', async socket => {
         let listenip;
         let announceip;
         if (process.platform === "linux") {
-            listenip = "172.31.40.255";
+            listenip = "0.0.0.0";
             announceip = "3.39.21.142";
         } else {
             listenip = "127.0.0.1";
