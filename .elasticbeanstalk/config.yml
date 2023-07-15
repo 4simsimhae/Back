@@ -1,6 +1,8 @@
 branch-defaults:
   master:
     environment: Simsimhae-env
+  mediasoup4:
+    environment: Simsimhae-env
   qwe:
     environment: Simsimhae-env
   room:
