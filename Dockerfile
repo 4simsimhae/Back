@@ -12,6 +12,10 @@ WORKDIR /app
 ADD . /app
 # npm install 을 실행
 RUN npm install
+RUN npm i mediasoup tutorials
+RUN npm install express httpolyglot socket.io socket.io-client --save
+RUN npm install mediasoup
+RUN npm install mediasoup-client
 
 #환경변수 NODE_ENV 의 값을 development 로 설정
 # ENV NODE_ENV development
