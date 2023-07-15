@@ -9,6 +9,9 @@ const server = http.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
+const { Server } = require('socket.io');
+const https = require('httpolyglot');
+const fs = require('fs');
 const path = require('path');
 const _dirname = path.resolve()
 const mediasoup = require('mediasoup');
@@ -44,7 +47,17 @@ app.use(
     })
 );
 
-const io = require('socket.io')(server, {
+const options = {
+    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+}
+
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(3001, () => {
+    console.log('listening on port: ' + 3001)
+})
+
+const io = new Server(httpsServer, {
     cors: {
         origin: [
             'https://simsimhae.store',
@@ -56,6 +69,19 @@ const io = require('socket.io')(server, {
     },
     ipv6: false,
 });
+
+// const io = require('socket.io')(server, {
+//     cors: {
+//         origin: [
+//             'https://simsimhae.store',
+//             'http://localhost:3000',
+//             'https://front-black-delta.vercel.app',
+//             'https://testmedia.vercel.app',
+//         ],
+//         credentials: true,
+//     },
+//     ipv6: false,
+// });
 
 const socketHandlers = require('./socket');
 const mediasoupRouter = require('./mediasoup/mediasoup.js')
