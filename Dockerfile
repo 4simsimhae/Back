@@ -17,7 +17,7 @@ RUN npm install
 # ENV NODE_ENV development
 
 #가상 머신에 오픈할 포트
-EXPOSE 3000
+EXPOSE 3000 2000 2001 2002 2003 2004
 
 #컨테이너에서 실행될 명령을 지정
 
