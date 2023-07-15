@@ -4,8 +4,10 @@ const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
 const app = express();
 const passport = require('passport');
-const http = require('http');
-const server = http.createServer(app); //
+const https = require('httpolyglot');
+const fs = require('fs');
+// const http = require('http');
+const server = https.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
@@ -30,6 +32,17 @@ app.use(cookieParser());
 //정적파일 미들웨어 (public폴더)
 app.use('/sfu/:room', express.static(path.join(_dirname, 'public')))
 
+// SSL cert for HTTPS access
+const options = {
+    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+    }
+
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(3000, () => {
+    console.log('listening on port: ' + 3000)
+})
+
 //CORS 설정
 const cors = require('cors');
 app.use(
@@ -44,7 +57,7 @@ app.use(
     })
 );
 
-const io = require('socket.io')(server, {
+const io = require('socket.io')(httpsServer, {
     cors: {
         origin: [
             'https://simsimhae.store',
@@ -117,9 +130,9 @@ app.get('/', (req, res) => {
 socketHandlers(io);
 mediasoupRouter(io);
 
-server.listen(3000, () => {
-    console.log('3000 포트로 서버 연결');
-});
+// server.listen(3000, () => {
+//     console.log('3000 포트로 서버 연결');
+// });
 
 // 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
 // 요일 이름과 id값을 저장한 배열

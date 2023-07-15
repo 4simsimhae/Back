@@ -14,7 +14,7 @@ const mediasoup = require('mediasoup');
 //     })
 
 //정적파일 미들웨어 (public폴더)
-// router.use('/sfu', express.static(path.join(_dirname, 'public')))
+// router.use('/sfu:room', express.static(path.join(_dirname, 'public')))
 
 // SSL cert for HTTPS access
 // const options = {
