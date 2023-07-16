@@ -17,11 +17,6 @@ RUN npm i mediasoup tutorials
 RUN npm install express httpolyglot socket.io socket.io-client --save
 RUN npm install mediasoup
 RUN npm install mediasoup-client
-RUN \
-	set -x \
-	&& apt-get update \
-	&& apt-get install -y net-tools build-essential python3 python3-pip valgrind
-
 
 #환경변수 NODE_ENV 의 값을 development 로 설정
 # ENV NODE_ENV development
