@@ -49,6 +49,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.3",
     "tutorials": "^1.0.0",
+    "ufw": "^1.0.3",
     "uuid": "^9.0.0",
     "watchify": "^4.0.0",
     "ws": "^8.13.0"
