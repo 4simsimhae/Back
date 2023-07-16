@@ -21,7 +21,6 @@
     "cookie-signature": "^1.2.1",
     "cookiejar": "^2.1.4",
     "cors": "^2.8.5",
-    "crawler": "^1.4.0",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "express": "^4.18.2",

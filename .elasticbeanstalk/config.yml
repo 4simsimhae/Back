@@ -1,14 +1,14 @@
 branch-defaults:
   mediasoup4:
-    environment: Simsimhae-env
+    environment: Mediasoup-env
 environment-defaults:
-  Simsimhae-env:
+  Mediasoup-env:
     branch: null
     repository: null
 global:
-  application_name: simsimhae
+  application_name: mediasoup
   default_ec2_keyname: simsimhae
-  default_platform: Docker running on 64bit Amazon Linux 2
+  default_platform: Node.js 18 running on 64bit Amazon Linux 2
   default_region: ap-northeast-2
   include_git_submodules: true
   instance_profile: null
