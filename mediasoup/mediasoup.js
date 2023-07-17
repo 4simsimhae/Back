@@ -52,7 +52,7 @@ let consumers = []      // [ { socketId1, roomName1, consumer, }, ... ]
 const createWorker = async () => {
     worker = await mediasoup.createWorker({
         rtcMinPort: 2000,
-        rtcMaxPort: 2020, //워커 포트
+        rtcMaxPort: 2005, //워커 포트
     })
     console.log(`worker pid ${worker.pid}`)
 
@@ -414,13 +414,12 @@ connections.on('connection', async socket => {
         if (process.platform === "linux") {
             listenip = "0.0.0.0";
             announceip = "172.17.0.2"; 
-            //"3.39.21.142" //인스턴스 퍼블릭 "3.39.254.76" //인스턴스 프라이빗 "172.31.12.132" //VPC IPv4 CIDR "172.31.0.0/16"
+            //"3.39.21.142" //인스턴스 퍼블릭 "3.39.254.76" //인스턴스 프라이빗 "172.31.12.132" //VPC IPv4 CIDR "172.31.0.0/16" //docker 기본 IP "172.17.0.2"
         } else {
-            listenip = "127.0.0.1";
-            announceip = null;
+            listenip = "192.168.0.16";
+            //announceip = "192.168.0.16";
         }
         console.log("🎧 listenip is : ", listenip);
-        console.log("announceip = ", announceip);
         
         const createWebRtcTransport = async (router) => {
             return new Promise(async (resolve, reject) => {

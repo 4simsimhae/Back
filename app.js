@@ -7,13 +7,13 @@ const passport = require('passport');
 const https = require('httpolyglot');
 const fs = require('fs');
 // const http = require('http');
-// const server = https.createServer(app); //
+const server = https.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
 const path = require('path');
 const _dirname = path.resolve()
-// const mediasoup = require('mediasoup');
+const mediasoup = require('mediasoup');
 
 //swagger
 const swaggerUi = require('swagger-ui-express');
