@@ -420,6 +420,7 @@ connections.on('connection', async socket => {
             //announceip = "192.168.0.16";
         }
         console.log("🎧 listenip is : ", listenip);
+        console.log("announceip = ", announceip);
         
         const createWebRtcTransport = async (router) => {
             return new Promise(async (resolve, reject) => {
