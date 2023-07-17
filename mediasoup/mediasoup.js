@@ -48,29 +48,32 @@ let transports = []     // [ { socketId1, roomName1, transport, consumer }, ... 
 let producers = []      // [ { socketId1, roomName1, producer, }, ... ]
 let consumers = []      // [ { socketId1, roomName1, consumer, }, ... ]
 
+//워커 생성하기
 const createWorker = async () => {
     worker = await mediasoup.createWorker({
         rtcMinPort: 2000,
-        rtcMaxPort: 2020,
+        rtcMaxPort: 2005, //워커 포트
     })
     console.log(`worker pid ${worker.pid}`)
 
+    // 심각한 문제 발생, 프로그램 종료
     worker.on('died', error => {
-        // This implies something serious happened, so kill the application
         console.error('mediasoup worker has died')
-        setTimeout(() => process.exit(1), 2000) // exit in 2 seconds
+        setTimeout(() => process.exit(1), 2000) // 2초안에 종료
     })
 
     return worker
 }
 
-// We create a Worker as soon as our application starts
+// 실행시 바로 워커 생성
 worker = createWorker()
 
-// This is an Array of RtpCapabilities
+// 배열 of RtpCapabilities
 // https://mediasoup.org/documentation/v3/mediasoup/rtp-parameters-and-capabilities/#RtpCodecCapability
-// list of media codecs supported by mediasoup ...
+// 미디어 수프에서 지원하는 미디어 코덱 목록...
 // https://github.com/versatica/mediasoup/blob/v3/src/supportedRtpCapabilities.ts
+
+//코덱 설정
 const mediaCodecs = [
     {
         kind: 'audio',
@@ -92,11 +95,13 @@ const mediaCodecs = [
 //소켓 연결
 connections.on('connection', async socket => {
     console.log(socket.id)
+
+    //첫 연결 soket Id 보내기
     socket.emit('connection-success', {
-        //소켓 아이디 출력
         socketId: socket.id
     })
 
+    //소켓 연결 제거하기 함수
     const removeItems = (items, socketId, type) => {
         items.forEach(item => {
             if (item.socketId === socket.id) {
@@ -108,8 +113,8 @@ connections.on('connection', async socket => {
         return items
         }
 
+    //연결 해제시 transports 제거하기
     socket.on('disconnect', () => {
-        // do some cleanup
         console.log('peer disconnected')
         consumers = removeItems(consumers, socket.id, 'consumer')
         producers = removeItems(producers, socket.id, 'producer')
@@ -118,7 +123,7 @@ connections.on('connection', async socket => {
         const { roomName } = peers[socket.id]
         delete peers[socket.id]
 
-    // remove socket from room
+        //방에서 소켓 제거
         rooms[roomName] = {
             router: rooms[roomName].router,
             peers: rooms[roomName].peers.filter(socketId => socketId !== socket.id)
@@ -126,13 +131,13 @@ connections.on('connection', async socket => {
     })
 
     socket.on('joinRoom', async ({ roomName }, callback) => {
-        // create Router if it does not exist
+        // 라우터가 없으면 생성하기
         // const router1 = rooms[roomName] && rooms[roomName].get('data').router || await createRoom(roomName, socket.id)
         const router1 = await createRoom(roomName, socket.id)
     
         peers[socket.id] = {
             socket,
-            roomName,           // Name for the Router this Peer joined
+            roomName,           // Peer가 접속한 router의 이름
             transports: [],
             producers: [],
             consumers: [],
@@ -142,13 +147,14 @@ connections.on('connection', async socket => {
             }
         }
 
-          // get Router RTP Capabilities
+        // get Router RTP Capabilities
         const rtpCapabilities = router1.rtpCapabilities
 
         // call callback from the client and send back the rtpCapabilities
         callback({ rtpCapabilities })
     })
 
+    // 방 생성
     const createRoom = async (roomName, socketId) => {
         // worker.createRouter(options)
         // options = { mediaCodecs, appData }
@@ -175,6 +181,7 @@ connections.on('connection', async socket => {
         }
     
 
+        // Transport 생성
         socket.on('createWebRtcTransport', async ({ consumer }, callback) => {
             // get Room Name from Peer's properties
             const roomName = peers[socket.id].roomName
@@ -194,7 +201,7 @@ connections.on('connection', async socket => {
                         }
                     })
         
-                    // add transport to Peer's properties
+                    // transport에 Peer's properties 추가
                     addTransport(transport, roomName, consumer)
                 },
                 error => {
@@ -202,6 +209,7 @@ connections.on('connection', async socket => {
                 })
             })
         
+            // transport에 Peer's properties 추가
             const addTransport = (transport, roomName, consumer) => {
         
             transports = [
@@ -218,6 +226,8 @@ connections.on('connection', async socket => {
                 }
             }
         
+
+            //
             const addProducer = (producer, roomName) => {
                 producers = [
                     ...producers,
@@ -284,7 +294,7 @@ connections.on('connection', async socket => {
                 return producerTransport.transport
             }
         
-            // see client's socket.emit('transport-connect', ...)
+            // 첫 transport.products 호출이 발생할 때
             socket.on('transport-connect', ({ dtlsParameters }) => {
                 console.log('DTLS PARAMS... ', { dtlsParameters })
             
@@ -402,8 +412,8 @@ connections.on('connection', async socket => {
         let listenip;
         let announceip;
         if (process.platform === "linux") {
-            listenip = "192.168.0.16";
-            //announceip = "0.0.0.0"; 
+            listenip = "0.0.0.0";
+            announceip = "127.17.0.1"; 
             //"3.39.21.142" //인스턴스 퍼블릭 "3.39.254.76" //인스턴스 프라이빗 "172.31.12.132" //VPC IPv4 CIDR "172.31.0.0/16"
         } else {
             listenip = "192.168.0.16";

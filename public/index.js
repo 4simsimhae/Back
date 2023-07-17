@@ -6,6 +6,7 @@ const roomName = window.location.pathname.split('/')[2]
 
 const socket = io("/mediasoup")
 
+//첫 연결, sokiet ID 받기
 socket.on('connection-success', ({ socketId }) => {
   console.log(socketId)
   getLocalStream()
@@ -51,27 +52,7 @@ let audioParams;
 let videoParams = { params };
 let consumingTransports = [];
 
-const streamSuccess = (stream) => {
-  localVideo.srcObject = stream
-
-  audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
-  videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
-
-  joinRoom()
-}
-
-const joinRoom = () => {
-  socket.emit('joinRoom', { roomName }, (data) => {
-    console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`)
-    // we assign to local variable and will be used when
-    // loading the client Device (see createDevice above)
-    rtpCapabilities = data.rtpCapabilities
-
-    // once we have rtpCapabilities from the Router, create Device
-    createDevice()
-  })
-}
-
+//첫 소켓연결시 audio 와 video 설정
 const getLocalStream = () => {
   navigator.mediaDevices.getUserMedia({
     audio: true,
@@ -92,14 +73,47 @@ const getLocalStream = () => {
   })
 }
 
-// A device is an endpoint connecting to a Router on the
-// server side to send/recive media
+//오디오 및 비디오 설정 //첫 소켓연결시
+const streamSuccess = (stream) => {
+  localVideo.srcObject = stream
+
+  audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
+  videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
+
+  //방 입장 실행
+  joinRoom()
+}
+
+
+//방생성 보내기 (라우터(/server) + (1) RTP Capabilities + (2) Device + (3) transport생성)
+const joinRoom = () => {
+  socket.emit('joinRoom', { roomName }, (data) => {
+    try{
+      console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`)
+      // local변수에 할당
+      // the client Device를 loading할 때 사용 (see createDevice)
+      rtpCapabilities = data.rtpCapabilities
+
+      // (2)
+      createDevice()
+
+    } catch (error) {
+      console.log("joinRoom 소켓 에러");
+      console.log(error)
+      console.log("-----------");
+    }
+  })
+}
+
+// (2)
+// device는 미디어를 전송/수신하기 위해 
+// 서버 측의 라우터에 연결하는 엔드포인트입니다.
 const createDevice = async () => {
   try {
     device = new mediasoupClient.Device()
 
     // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-load
-    // Loads the device with RTP capabilities of the Router (server side)
+    // 라우터(서버 측)의 RTP 기능이 있는 장치를 로드합니다
     await device.load({
       // see getRtpCapabilities() below
       routerRtpCapabilities: rtpCapabilities
@@ -107,6 +121,7 @@ const createDevice = async () => {
 
     console.log('Device RTP Capabilities', device.rtpCapabilities)
 
+    // (3)
     // once the device loads, create transport
     createSendTransport()
 
@@ -117,9 +132,10 @@ const createDevice = async () => {
   }
 }
 
+// (3) Transport 생성
 const createSendTransport = () => {
-  // see server's socket.on('createWebRtcTransport', sender?, ...)
-  // this is a call from Producer, so sender = true
+  // 서버쪽의 socket.on('createWebRtcTransport', sender?, ...) 참고
+  // Producer요청, so sender = true
   socket.emit('createWebRtcTransport', { consumer: false }, ({ params }) => {
     // The server sends back params needed 
     // to create Send Transport on the client side
@@ -136,7 +152,7 @@ const createSendTransport = () => {
     producerTransport = device.createSendTransport(params)
 
     // https://mediasoup.org/documentation/v3/communication-between-client-and-server/#producing-media
-    // this event is raised when a first call to transport.produce() is made
+    // 이 이벤트는 transport.products에 대한 첫 번째 호출이 이루어질 때 발생
     // see connectSendTransport() below
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
@@ -146,7 +162,7 @@ const createSendTransport = () => {
           dtlsParameters,
         })
 
-        // Tell the transport that parameters were transmitted.
+        // 매개변수가 변경되었음을 알림
         callback()
 
       } catch (error) {

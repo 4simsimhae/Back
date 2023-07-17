@@ -22,12 +22,14 @@ RUN npm install mediasoup-client
 # ENV NODE_ENV development
 
 #가상 머신에 오픈할 포트
-EXPOSE 3000
-EXPOSE 2000-2020
+EXPOSE 3000 4443
+EXPOSE 4443/UDP
+EXPOSE 2000-2005
+EXPOSE 2000-2020/UDP
 EXPOSE 10000-10100
 
 #컨테이너에서 실행될 명령을 지정
 
 CMD ["node", "app.js"]
 
-#test
+#tests
