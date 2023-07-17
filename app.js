@@ -4,10 +4,10 @@ const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
 const app = express();
 const passport = require('passport');
-const https = require('httpolyglot');
+// const https = require('httpolyglot');
 const fs = require('fs');
-// const http = require('http');
-const server = https.createServer(app); //
+const http = require('http');
+const server = http.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
@@ -38,7 +38,7 @@ const options = {
     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
     }
 
-const httpsServer = https.createServer(options, app)
+const httpsServer = http.createServer(options, app) //
 httpsServer.listen(3000, () => {
     console.log('listening on port: ' + 3000)
 })
