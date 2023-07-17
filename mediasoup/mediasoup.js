@@ -413,11 +413,11 @@ connections.on('connection', async socket => {
         let announceip;
         if (process.platform === "linux") {
             listenip = "0.0.0.0";
-            announceip = "172.31.12.132"; 
+            announceip = "172.31.0.0/16"; 
             //"3.39.21.142" //인스턴스 퍼블릭 "3.39.254.76" //인스턴스 프라이빗 "172.31.12.132" //VPC IPv4 CIDR "172.31.0.0/16" //docker 기본 IP "172.17.0.2"
         } else {
             listenip = "0.0.0.0";
-            //announceip = "192.168.0.16";
+            announceip = "192.168.0.16";
         }
         console.log("🎧 listenip is : ", listenip);
         console.log("announceip = ", announceip);
