@@ -1,33 +1,4 @@
-// const express = require('express');
-// const router = express.Router();
-
-// const https = require('httpolyglot');
-// const fs = require('fs');
-// const path = require('path');
-// const _dirname = path.resolve()
-
-//const { Server } = require('socket.io');
 const mediasoup = require('mediasoup');
-
-// router.get('/', (req, res) => {
-//         res.send('Hello from mediasoup app!')
-//     })
-
-//정적파일 미들웨어 (public폴더)
-// router.use('/sfu:room', express.static(path.join(_dirname, 'public')))
-
-// SSL cert for HTTPS access
-// const options = {
-//     key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-//     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-// }
-
-// const httpsServer = https.createServer(options, router)
-// httpsServer.listen(3001, () => {
-//     console.log('listening on port: ' + 3001)
-// })
-
-// const io = new Server(httpsServer)
 
 module.exports = (io) => {
     const connections = io.of('/mediasoup')
@@ -131,9 +102,10 @@ connections.on('connection', async socket => {
     })
 
     socket.on('joinRoom', async ({ roomName }, callback) => {
-        // 라우터가 없으면 생성하기
+        // 라우터가 없으면 생성해야함
         // const router1 = rooms[roomName] && rooms[roomName].get('data').router || await createRoom(roomName, socket.id)
-        const router1 = await createRoom(roomName, socket.id)
+        try{
+            const router1 = await createRoom(roomName, socket.id)
     
         peers[socket.id] = {
             socket,
@@ -150,23 +122,25 @@ connections.on('connection', async socket => {
         // get Router RTP Capabilities
         const rtpCapabilities = router1.rtpCapabilities
 
-        // call callback from the client and send back the rtpCapabilities
+        // callback으로 rtpCapabilities 전송
         callback({ rtpCapabilities })
+
+        } catch {
+            console.log("joinRoom 소켓 에러");
+            console.log(error)
+            console.log("-----------");
+        }
     })
 
     // 방 생성
     const createRoom = async (roomName, socketId) => {
-        // worker.createRouter(options)
-        // options = { mediaCodecs, appData }
-        // mediaCodecs -> defined above
-        // appData -> custom application data - we are not supplying any
-        // none of the two are required
         let router1
         let peers = []
         if (rooms[roomName]) {
             router1 = rooms[roomName].router
             peers = rooms[roomName].peers || []
         } else {
+            // 라우터가 없어서 새로 생성
             router1 = await worker.createRouter({ mediaCodecs, })
         }
         
@@ -183,13 +157,14 @@ connections.on('connection', async socket => {
 
         // Transport 생성
         socket.on('createWebRtcTransport', async ({ consumer }, callback) => {
-            // get Room Name from Peer's properties
+            // Peer's properties에서 roomName받기
             const roomName = peers[socket.id].roomName
         
             // get Router (Room) object this peer is in based on RoomName
             const router = rooms[roomName].router
         
         
+            //Transport만들기
             createWebRtcTransport(router).then(
                 transport => {
                     callback({
@@ -216,7 +191,6 @@ connections.on('connection', async socket => {
                 ...transports,
                 { socketId: socket.id, transport, roomName, consumer, }
                 ]
-        
             peers[socket.id] = {
                 ...peers[socket.id],
                 transports: [
@@ -227,7 +201,7 @@ connections.on('connection', async socket => {
             }
         
 
-            //
+            //producer추가
             const addProducer = (producer, roomName) => {
                 producers = [
                     ...producers,
@@ -243,6 +217,7 @@ connections.on('connection', async socket => {
                 }
             }
         
+            //consumer 추가
             const addConsumer = (consumer, roomName) => {
                 // add the consumer to the consumers list
                 consumers = [
@@ -260,8 +235,8 @@ connections.on('connection', async socket => {
                 }
             }
         
+            // 모든 transports 전송
             socket.on('getProducers', callback => {
-                //return all producer transports
                 const { roomName } = peers[socket.id]
         
                 let producerList = []
@@ -271,7 +246,7 @@ connections.on('connection', async socket => {
                     }
                 })
         
-            // return the producer list back to the client
+            // producer list를 client에게 전송
             callback(producerList)
             })
         
@@ -295,15 +270,16 @@ connections.on('connection', async socket => {
             }
         
             // 첫 transport.products 호출이 발생할 때
+            // dtlsParameter을 기반으로 transrpot를 연결시켜줌
             socket.on('transport-connect', ({ dtlsParameters }) => {
                 console.log('DTLS PARAMS... ', { dtlsParameters })
             
                 getTransport(socket.id).connect({ dtlsParameters })
             })
         
-            // see client's socket.emit('transport-produce', ...)
+            // produce의 transport가 연결되면
+            // client에서 producer id 보내줌
             socket.on('transport-produce', async ({ kind, rtpParameters, appData }, callback) => {
-                // call produce based on the prameters from the client
                 const producer = await getTransport(socket.id).produce({
                     kind,
                     rtpParameters,
@@ -323,7 +299,7 @@ connections.on('connection', async socket => {
                     producer.close()
                 })
         
-                // Send back to the client the Producer's id
+                // 방에 producer가 있는지 담아서 보냄 (방만든이인지 아닌지)
                 callback({
                     id: producer.id,
                     producersExist: producers.length>1 ? true : false
