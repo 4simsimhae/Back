@@ -42,11 +42,12 @@ let params = {
   }
 }
 
-/////////////////////////////////////////////////////////////////////////////////
 let audioParams;
 let videoParams = { params };
 let consumingTransports = [];
 
+///////////////////////////////////////////////////////////////////////////////// (코드 cut)
+// 첫방 만들어지면 실행 (코드넣기)
 
 //첫 연결, sokiet ID 받기
 socket.on('connection-success', ({ socketId }) => {
@@ -87,7 +88,7 @@ const streamSuccess = (stream) => {
   joinRoom()
 }
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////
 //방생성 보내기 (라우터(/server) + (1) RTP Capabilities + (2) Device + (3) transport생성)
 const joinRoom = () => {
   socket.emit('joinRoom', { roomName }, (data) => {
@@ -239,9 +240,7 @@ const connectSendTransport = async () => {
   })
 }
 
-//consumer
-///////////////////////////////////////////////////////////////////////////////////////
-
+///////////
 // 방에 이미 producer가 있는 경우, producer id 정보들을 가져옴 
 const getProducers = () => {
   socket.emit('getProducers', producerIds => { //producer의 모든 Id 가져옴
@@ -252,9 +251,19 @@ const getProducers = () => {
   })
 }
 
+///////////////////////////////////////////////////////////////////////////////// (코드 cut)
 //////// simsimhae 추가 코드
+
 //배심원이 새로 참가하여 new consumer 를 생성하는 경우
+//첫 연결, sokiet ID 받기
 const newJuror = () => {
+  socket.on('connection-success-juror', ({ socketId }) => {
+    console.log(socketId)
+    newJurorRTPcreate()
+  })
+}
+
+const newJurorRTPcreate = () => {
   socket.emit('newJuror', { roomName }, (data) => {
     // rtp capability 발급
     try{
@@ -301,6 +310,9 @@ const newJuror = () => {
     }
   }
 
+
+///////////////////////////////////////////////////////////////////////////////// (코드 cut)
+///////// 새로운 발언자 들어옴
 
 // 기존의 peer에게 서버에서 새로운 producer 알림 및 새로운 consumer 생성
 // 즉 1개의 consumer만 생성하는 코드
@@ -388,7 +400,7 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
       },
     ]
 
-    ///////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////
 
     // 인원마다 늘어나는 vido 창이 아니므로 삭제?
     // 새로운 consumer media를 위한 div element 생성

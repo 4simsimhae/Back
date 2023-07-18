@@ -72,6 +72,11 @@ connections.on('connection', async socket => {
         socketId: socket.id
     })
 
+    //첫 연결 juror soket Id 보내기
+    socket.emit('connection-success-juror', {
+        socketId: socket.id
+    })
+
     //소켓 연결 제거하기 함수
     const removeItems = (items, socketId, type) => {
         items.forEach(item => {
