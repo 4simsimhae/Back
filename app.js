@@ -57,7 +57,7 @@ app.use(
     })
 );
 
-const io = require('socket.io')(server, { //
+const io = require('socket.io')(server, {
     cors: {
         origin: [
             'https://simsimhae.store',
