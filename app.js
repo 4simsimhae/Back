@@ -73,15 +73,20 @@ const io = require('socket.io')(server, {
 const socketHandlers = require('./socket');
 const mediasoupRouter = require('./mediasoup/mediasoup.js')
 
+let domain
+if (process.platform === "linux") {
+    domain = 'https://front-black-delta.vercel.app'
+} else {
+    domain = 'http://localhost:3000'
+}
+
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
-            // domain: 'http://localhost:3000',
-            // domain: 'https://front-black-delta.vercel.app',
-            domain: 'https://testmedia.vercel.app',
+            domain: domain,
             path: '/',
             secure: false,
             httpOnly: false,
