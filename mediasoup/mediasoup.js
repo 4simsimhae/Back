@@ -101,7 +101,41 @@ connections.on('connection', async socket => {
         }
     })
 
+
+    ///////////////////////////////////////////////
     socket.on('joinRoom', async ({ roomName }, callback) => {
+        // 라우터가 없으면 생성해야함
+        // const router1 = rooms[roomName] && rooms[roomName].get('data').router || await createRoom(roomName, socket.id)
+        try{
+            const router1 = await createRoom(roomName, socket.id)
+    
+        peers[socket.id] = {
+            socket,
+            roomName,           // Peer가 접속한 router의 이름
+            transports: [],
+            producers: [],
+            consumers: [],
+            peerDetails: {
+                name: '',
+                isAdmin: false,   // Is this Peer the Admin?
+            }
+        }
+
+        // get Router RTP Capabilities
+        const rtpCapabilities = router1.rtpCapabilities
+
+        // callback으로 rtpCapabilities 전송
+        callback({ rtpCapabilities })
+
+        } catch {
+            console.log("joinRoom 소켓 에러");
+            console.log(error)
+            console.log("-----------");
+        }
+    })
+
+    //newJuror
+    socket.on('newJuror', async ({ roomName }, callback) => {
         // 라우터가 없으면 생성해야함
         // const router1 = rooms[roomName] && rooms[roomName].get('data').router || await createRoom(roomName, socket.id)
         try{

@@ -22091,8 +22091,73 @@ const connectSendTransport = async () => {
   })
 }
 
-
+//consumer
 ///////////////////////////////////////////////////////////////////////////////////////
+
+// 방에 이미 producer가 있는 경우, producer id 정보들을 가져옴 
+const getProducers = () => {
+  socket.emit('getProducers', producerIds => { //producer의 모든 Id 가져옴
+    console.log(producerIds)
+    // new producer에 대한 consumer 각각 생성
+    // producerIds.forEach(id => signalNewConsumerTransport(id))
+    producerIds.forEach(signalNewConsumerTransport) // produce Id에 대하여 각각의 consumer을 생성
+  })
+}
+
+//////// simsimhae 추가 코드
+//배심원이 새로 참가하여 new consumer 를 생성하는 경우
+const newJuror = () => {
+  socket.emit('newJuror', { roomName }, (data) => {
+    // rtp capability 발급
+    try{
+      console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`)
+      // local변수에 할당
+      // the client Device를 loading할 때 사용 (see createDevice)
+      rtpCapabilities = data.rtpCapabilities
+  
+      // (2)
+      newJurorCreateDevice()
+
+    } catch (error) {
+      console.log("joinRoom 소켓 에러");
+      console.log(error)
+      console.log("-----------");
+    }
+  })
+}
+
+  // (2)
+  // device는 미디어를 전송/수신하기 위해 
+  // 서버 측의 라우터에 연결하는 엔드포인트입니다.
+  const newJurorCreateDevice = async () => {
+    try {
+      device = new mediasoupClient.Device()
+  
+      // https://mediasoup.org/documentation/v3/mediasoup-client/api/#device-load
+      // 라우터(서버 측)의 RTP 기능이 있는 장치를 로드합니다
+      await device.load({
+        // see getRtpCapabilities() below
+        routerRtpCapabilities: rtpCapabilities
+      })
+  
+      console.log('Device RTP Capabilities', device.rtpCapabilities)
+
+      // 방에 있는 모든 producer Id가져와서 각각의 consumer 생성
+      getProducers()
+      // => consumer생성
+  
+    } catch (error) {
+      console.log(error)
+      if (error.name === 'UnsupportedError')
+        console.warn('browser not supported')
+    }
+  }
+
+
+// 기존의 peer에게 서버에서 새로운 producer 알림 및 새로운 consumer 생성
+// 즉 1개의 consumer만 생성하는 코드
+socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId))
+
 
 // 새로운 peer가 들어와서 consumer를 첫 생성할 때 코드
 const signalNewConsumerTransport = async (remoteProducerId) => {
@@ -22142,27 +22207,6 @@ const signalNewConsumerTransport = async (remoteProducerId) => {
   })
 }
 
-
-
-////////
-//배심원이 새로 참가하여 new consumer 를 생성하는 경우
-socket.on('newConsumer', ({ producerId }) => signalNewConsumerTransport(producerId))
-
-
-// consumer 생성 첫부분
-// 기존의 peer에게 서버에서 새로운 producer 알림 및 새로운 consmer 생성
-socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId))
-
-// 방에 이미 producer가 있는 경우, producer id 정보들을 가져옴 
-const getProducers = () => {
-  socket.emit('getProducers', producerIds => {
-    console.log(producerIds)
-    // new producer에 대한 consumer 각각 생성
-    // producerIds.forEach(id => signalNewConsumerTransport(id))
-    producerIds.forEach(signalNewConsumerTransport) // produce Id에 대하여 각각의 consumer을 생성
-  })
-}
-
 //consumer을 생성하기위해 server에 요청
 const connectRecvTransport = async (consumerTransport, remoteProducerId, serverConsumerTransportId) => {
   // rtpCapabilities 기반으로 consumer생성 및 consume
@@ -22196,7 +22240,9 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
       },
     ]
 
-    // 인원마다 늘어나는 vido 창이 아니므로 삭제
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    // 인원마다 늘어나는 vido 창이 아니므로 삭제?
     // 새로운 consumer media를 위한 div element 생성
     const newElem = document.createElement('div')
     newElem.setAttribute('id', `td-${remoteProducerId}`)
