@@ -18,10 +18,10 @@ module.exports = async (req, res, next) => {
         // console.log('아곤 받은 토큰 = ', Authorization);
         // 토큰이 있는지 확인
         if (!Authorization) {
-            // console.log('토큰 없음 --------------');
+            console.log('토큰 없음 --------------');
             res.locals.user = [];
         } else {
-            // console.log('토큰 있음 ------------------?');
+            console.log('토큰 있음 ------------------?');
 
             const [authType, authToken] = Authorization.split(' ');
             // console.log('authType = ', authType);
@@ -37,9 +37,9 @@ module.exports = async (req, res, next) => {
                     authToken,
                     process.env.JWT_SECRET
                 );
-                // console.log('middleware 디코드한 유저정보 = ', userId);
+                console.log('middleware 디코드한 유저정보 = ', userId);
                 const user = await User.findOne({ where: { userId } });
-                // console.log('유저정보담아서보냄');
+                console.log('유저정보담아서보냄');
 
                 res.locals.user = user;
             }

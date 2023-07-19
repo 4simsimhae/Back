@@ -15,6 +15,9 @@ module.exports = {
             roomId: {
                 type: Sequelize.INTEGER,
             },
+            afterRoomId: {
+                type: Sequelize.INTEGER,
+            },
             nickName: {
                 type: Sequelize.STRING,
             },

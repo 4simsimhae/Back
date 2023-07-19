@@ -169,23 +169,19 @@ router.post(
 
             //방 생성 정보
             const roomName = newroomName;
-            const debater = 0;
-            const panel = 0;
-            const gameStart = 0;
 
             const createdRoom = await Room.create({
                 kategorieId,
                 kategorieName,
                 roomName,
-                debater,
-                gameStart,
-                panel,
+                debater: 0,
+                gameStart: 0,
+                panel: 0,
             });
             console.log('방생성 완료');
 
             const roomId = createdRoom.roomId;
 
-            // test
             await Vote.create({
                 roomId,
                 debater1Count: 0,
@@ -207,17 +203,14 @@ router.post(
 
             //userInfo 수정
 
-            const like = 0;
-            const hate = 0;
-            const questionMark = 0;
-            const Userdebater = 1;
             await UserInfo.update(
                 {
                     roomId,
-                    like,
-                    hate,
-                    questionMark,
-                    debater: Userdebater,
+                    like: 0,
+                    hate: 0,
+                    questionMark: 0,
+                    debater: 1,
+                    host: 1,
                     updatedAt: new Date(),
                 },
                 {
@@ -250,19 +243,14 @@ router.put('/user', checkLogin, randomNickName, async (req, res) => {
         const splitname = randomName.split(' ');
         const newRandomName = splitname[splitname.length - 1];
         const nickName = newRandomName; //오픈API로 받기
-        const like = 0;
-        const hate = 0;
-        const questionMark = 0;
-        const debater = 0;
-        const roomId = 0;
 
         if (!userId) {
+            console.log('비로그인 유저 ---------- ');
             //만약 로그인 유저가 아니라면! 정보만들기
-            const nologinuserId = 0;
             const newNoLoginUser = await User.create(
                 //User 정보 생성하기
                 {
-                    kakaoId: nologinuserId,
+                    kakaoId: 0,
                 }
             );
             const avatars = {
@@ -272,13 +260,15 @@ router.put('/user', checkLogin, randomNickName, async (req, res) => {
             const avatarString = JSON.stringify(avatars);
             await UserInfo.create({
                 //UserInfo 생성하기
-                userId: newNoLoginUser.userId,
-                roomId,
                 nickName,
-                like,
-                hate,
-                questionMark,
-                debater,
+                userId: newNoLoginUser.userId,
+                roomId: 0,
+                like: 0,
+                hate: 0,
+                questionMark: 0,
+                debater: 0,
+                host: 0,
+                afterRoomId: 0,
                 avatar: avatarString,
             });
             const token = jwt.sign(
@@ -297,20 +287,23 @@ router.put('/user', checkLogin, randomNickName, async (req, res) => {
             //헤더에 토큰담아 보내기
             //결과
             const response = new ApiResponse(200, '', [
-                { Authorization: `Bearer ${token}`, kakaoId: nologinuserId },
+                { Authorization: `Bearer ${token}`, kakaoId: 0 },
             ]);
             return res.status(200).json(response);
         } else {
             // console.log('정보 있음 = ', res.locals.user);
+
             //로그인 유저라면 정보 수정하기!
             await UserInfo.update(
                 {
                     nickName,
-                    roomId,
-                    like,
-                    hate,
-                    questionMark,
-                    debater,
+                    roomId: 0,
+                    like: 0,
+                    hate: 0,
+                    questionMark: 0,
+                    debater: 0,
+                    host: 0,
+                    afterRoomId: 0,
                     updatedAt: new Date(),
                 },
                 {

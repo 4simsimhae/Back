@@ -29,6 +29,9 @@ module.exports = (sequelize, DataTypes) => {
             roomId: {
                 type: DataTypes.INTEGER,
             },
+            afterRoomId: {
+                type: DataTypes.INTEGER,
+            },
             nickName: {
                 type: DataTypes.STRING,
             },

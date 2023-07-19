@@ -133,7 +133,7 @@ const makeRandomAvatar = async (socket) => {
             color: avatarColor,
         };
 
-        socket.avatar = avatar;
+        socket.avatar = JSON.stringify(avatar);
     } catch (error) {
         console.error('랜덤 아바타 생성에 실패했습니다:', error);
         socket.emit('error', '랜덤 아바타 생성에 실패했습니다.');

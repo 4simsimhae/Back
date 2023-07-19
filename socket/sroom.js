@@ -37,22 +37,6 @@ const ipInfoDeleteFunc = async (socket) => {
     console.log('connectedIPs=', connectedIPs);
 };
 
-const getRoomList = async (kategorieId) => {
-    const roomList = await Room.findAll({
-        attributes: [
-            'roomId',
-            'KategorieName',
-            'roomName',
-            'debater',
-            'panel',
-            'gameStart',
-        ],
-        where: { kategorieId },
-        order: [['createdAt', 'DESC']],
-    });
-    return roomList;
-};
-
 //빈방 삭제
 const deleteEmptyRooms = async () => {
     try {
@@ -73,7 +57,7 @@ const deleteEmptyRooms = async () => {
     }
 };
 
-// 방인원 체크
+//방인원 체크 : room의 debater, panel 업데이트
 async function updateRoomCount(roomId) {
     // roomId를 받아서 UserInfo 테이블에서 roomId가 일치 하면서 debater값이 0,1인 인원수 카운트
     const [debateUserCount, jurorUserCount] = await Promise.all([
@@ -87,6 +71,23 @@ async function updateRoomCount(roomId) {
         { where: { roomId } }
     );
 }
+
+// 카테고리별 방리스트 조회
+const getRoomList = async (kategorieId) => {
+    const roomList = await Room.findAll({
+        attributes: [
+            'roomId',
+            'KategorieName',
+            'roomName',
+            'debater',
+            'panel',
+            'gameStart',
+        ],
+        where: { kategorieId },
+        order: [['createdAt', 'DESC']],
+    });
+    return roomList;
+};
 
 // Vote 테이블 data 삭제
 const deleteVotes = async () => {
@@ -153,6 +154,7 @@ module.exports = async (io) => {
         });
     });
 
+    // 삭제 예정
     let data = [];
 
     // socket connection
@@ -163,6 +165,8 @@ module.exports = async (io) => {
                 /* ip check
                     ipCheckFunc();
                 */
+                socket.kategorieId = kategorieId;
+
                 // socketCheckLogin 미들웨어 : DB에 존재하는 유저인지 확인
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
@@ -170,8 +174,7 @@ module.exports = async (io) => {
                     }
                 });
 
-                socket.kategorieId = kategorieId;
-
+                // 유저 확인을 위해 사용
                 const userInfo = await UserInfo.findOne({
                     where: { userId: socket.user.userId },
                     include: [
@@ -183,14 +186,12 @@ module.exports = async (io) => {
                     ],
                 });
 
-                // console.log('유저 정보 = ', userInfo);
-
                 if (!userInfo) {
                     socket.emit('error', '유저를 찾을 수 없습니다.');
                     return;
                 }
 
-                // roomId 조회 후 room 생성
+                // 방이 현재 존재하는지 확인
                 const room = await Room.findOne({ where: { roomId } });
 
                 if (!room) {
@@ -200,148 +201,264 @@ module.exports = async (io) => {
 
                 socket.roomId = roomId;
 
-                /* 랜덤 아바타 생성함수
+                // 새로고침 시 동일한 데이터 보여주기 위함임
+                if (userInfo.afterRoomId === roomId) {
+                    socket.nickName = userInfo.nickName;
+                    socket.avater = userInfo.abatar;
+                } else {
+                    /* 랜덤 아바타 생성함수
                     1. socket.avatar에 랜덤 값 저장 - 객체 형태
                 */
-                await makeRandomAvatar(socket);
+                    await makeRandomAvatar(socket);
 
-                /* 랜덤 닉네임 생성함수
+                    /* 랜덤 닉네임 생성함수
                     1. socket.nickName에 랜덤 값 저장 
                 */
-                await makeRandomNickName(socket);
+                    await makeRandomNickName(socket);
+                }
 
-                //
-                userInfo.avatar = JSON.stringify(socket.avatar);
-                userInfo.debater = 1;
-                userInfo.roomId = roomId;
-                userInfo.nickName = socket.nickName;
+                // 토론자로 입장 시 최종 업데이트되는 값
+                await UserInfo.update(
+                    {
+                        debater: 1,
+                        roomId: socket.roomId,
+                        afterRoomId: socket.roomId,
+                        avatar: socket.avatar,
+                        nickName: socket.nickName,
+                    },
+                    {
+                        where: { userId: socket.user.userId },
+                    }
+                );
 
-                //방장 권한 주기
-                const userExists = await UserInfo.findOne({
+                /*                //방장 권한 주기
+                const hostExists = await UserInfo.findOne({
                     where: {
                         roomId,
                         host: 1,
                     },
                 });
 
+                console.log('호스트 존재', hostExists);
+
                 // 방장이 이미 있을시 host = 0, 방장이 없을시 host = 1
-                if (userExists) {
-                    userInfo.host = 0;
+                if (hostExists) {
+                    await UserInfo.update(
+                        { host: 0 },
+                        {
+                            where: { userId: socket.user.userId },
+                        }
+                    );
                 } else {
-                    userInfo.host = 1;
-                }
+                    await UserInfo.update(
+                        { host: 1 },
+                        {
+                            where: { userId: socket.user.userId },
+                        }
+                    );
+                } */
 
-                // userInfo save
-                await userInfo.save().then(() => {
-                    done();
+                socket.join(roomId);
+                console.log('소켓 방 입장', socket.adapter.rooms);
 
-                    // userData 생성
-                    if (data.length === 0) {
-                        const userData = {
-                            userId: userInfo.userId,
-                            nickName: userInfo.nickName,
-                            avatar: userInfo.avatar,
-                            host: userInfo.host,
-                            debater: userInfo.debater,
-                        };
-                        data.push(userData);
-                        console.log('없을 때 만들어지는 data', data);
-                    } else {
-                        let count = 0;
-                        data.map((item) => {
-                            if (item.userId === userInfo.userId) {
-                                item.userId = userInfo.userId;
-                                item.nickName = userInfo.nickName;
-                                item.avatar = userInfo.avatar;
-                                item.host = userInfo.host;
-                                item.debater = userInfo.debater;
-                                console.log('동일한 Id 존재');
-                            } else if (count === 0) {
-                                const userData = {
-                                    userId: userInfo.userId,
-                                    nickName: userInfo.nickName,
-                                    avatar: userInfo.avatar,
-                                    host: userInfo.host,
-                                    debater: userInfo.debater,
-                                };
-                                data.push(userData);
-                                count += 1;
-                                console.log(
-                                    '동일한 Id가 없을 때 만들어지는 Data',
-                                    data
-                                );
-                            }
-                        });
-                    }
-
-                    socket.join(roomId);
-
-                    console.log('data =', data);
-
-                    // 연결된 socket 전체에게 입장한 유저 data 보내기
-                    io.to(roomId).emit('roomJoined', data);
+                const userListOnDB = await UserInfo.findAll({
+                    attributes: [
+                        'userId',
+                        'nickName',
+                        'avatar',
+                        'host',
+                        'debater',
+                    ],
+                    where: { roomId: socket.roomId },
                 });
 
-                //방인원 체크후 db업데이트
+                console.log('방 입장 유저리스트 (DB)', userListOnDB);
+
+                const userList = await userListOnDB.map((user) => {
+                    return {
+                        userId: user.userId,
+                        nickName: user.nickName,
+                        avatar: user.avatar,
+                        host: user.host,
+                        debater: user.debater,
+                    };
+                });
+
+                console.log('방 입장 유저리스트', userList);
+
+                // 연결된 socket 전체에게 입장한 유저 data 보내기
+                io.to(roomId).emit('roomJoined', userList);
+
+                //방인원 체크후 db업데이트 : room의 debater, panel 업데이트
                 await updateRoomCount(roomId);
 
                 // roomList 갱신
                 const roomList = await getRoomList(kategorieId);
+                console.log('방 입장 룸리스트', roomList);
 
                 // 룸리스트 네임스페이스로 전달
-                io.of('/roomList')
+                await io
+                    .of('/roomList')
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
+                done();
 
-                // 방 나가기
+                // 방 나가기 : 토론자 및 방장이 정상적인 루트로 나갔을 시 적용
                 socket.on('leave_room', async (done) => {
                     done();
-                    socket.on('disconnecting', async () => {
-                        console.log(
-                            '4. joinDebate 내부 leave_room disconnecting'
-                        );
-                        // 나간 유저 정보 Data 배열에서 삭제
-                        data = data.filter(
-                            (userData) => userData.userId !== socket.user.userId
-                        );
-
-                        // 방 퇴장 유저 nickName 프론트로 전달
+                    socket.on('disconnecting', () => {
                         io.to(roomId).emit('roomLeft', socket.nickName);
-                        // 방 퇴장 후 남아있는 userData 보내기
-                        // io.to(roomId).emit('roomJoined', data);
-
-                        // 방 인원 체크후 db업데이트
-                        await updateRoomCount(roomId);
-
-                        // 빈방 삭제
-                        await deleteEmptyRooms();
-                        await deleteVotes();
-
-                        // 룸리스트 갱신
-                        const roomList = await getRoomList(kategorieId);
-
-                        // 네임스페이스에 룸리스트 보내기
-                        io.of('/roomList')
-                            .to(kategorieId)
-                            .emit('update_roomList', roomList);
-                        // // 유저 IP 정보 삭제
-                        // ipInfoDeleteFunc();
                     });
-                    // 소켓 연결 끊기
-                    // socket.disconnect();
                 });
 
-                // socket disconnecting
+                // socket disconnecting : 토론자 및 방장이 정상적인 루트로 나가지 않았을 시 작동되어야 할 부분
                 socket.on('disconnecting', async () => {
                     console.log('2. joinDebate disconnecting');
-                    userInfo.roomId = 0;
+
+                    // 현재 DB 내 방 정보
+                    const room = await Room.findOne({
+                        where: {
+                            roomId: socket.roomId,
+                        },
+                    });
+
+                    const myUserInfo = await UserInfo.findOne({
+                        where: {
+                            userId: socket.user.userId,
+                        },
+                    });
+
+                    // 로직 진행
+                    // Logic 1. 게임 종료 : 게임 시작 후 발언자가 나갈 경우
+                    // gameStart 변경
+                    if (room.gameStart === 1) {
+                        await Room.update(
+                            {
+                                gameStart: 0,
+                            },
+                            { where: { roomId: socket.roomId } }
+                        );
+                        io.to(socket.roomId).emit('gameEnd');
+                    }
+
+                    // Logic 2. 방장 넘기기 : 방장 나갔을 때 넘겨줄 유저 잇는 경우
+                    if (myUserInfo.host === 1) {
+                        // 새로운 방장
+                        const newHost = await UserInfo.findOne({
+                            attributes: ['userId'],
+                            where: {
+                                roomId: socket.roomId,
+                                debater: 1,
+                                host: 0,
+                            },
+                        });
+                        if (newHost) {
+                            await UserInfo.update(
+                                {
+                                    host: 1,
+                                },
+                                {
+                                    where: { userId: newHost.userId },
+                                }
+                            );
+                            // io.to(socket.roomId).emit(
+                            //     'changeHost',
+                            //     newHost.userId
+                            // );
+                            console.log('2 - 1 - 1. 호스트 변경 (완료) ');
+                        }
+                    }
+
+                    await UserInfo.update(
+                        {
+                            host: 0,
+                            debater: 0,
+                            roomId: 0,
+                        },
+                        {
+                            where: { userId: socket.user.userId },
+                        }
+                    );
+
+                    const userListOnDB = await UserInfo.findAll({
+                        attributes: [
+                            'userId',
+                            'nickName',
+                            'avatar',
+                            'host',
+                            'debater',
+                        ],
+                        where: { roomId: socket.roomId },
+                    });
+
+                    const userList = await userListOnDB.map((user) => {
+                        return {
+                            userId: user.userId,
+                            nickName: user.nickName,
+                            avatar: user.avatar,
+                            host: user.host,
+                            debater: user.debater,
+                        };
+                    });
+
+                    console.log('2. 디베이터 나간 후 유저 리스트', userList);
+
+                    io.to(roomId).emit('roomJoined', userList);
+
+                    // 2. 방 업데이트 : debater, panel
+                    await updateRoomCount(roomId);
+
+                    // 현재 DB 내 방 정보
+                    const updatedRoom = await Room.findOne({
+                        where: {
+                            roomId,
+                        },
+                    });
+
+                    if (updatedRoom && updatedRoom.debater === 0) {
+                        console.log('2 - 2.  방 폭파');
+                        const allSockets = io.sockets.sockets;
+                        const socketsInRoom = Array.from(allSockets).filter(
+                            ([_, socket]) => {
+                                return socket.rooms.has(roomId);
+                            }
+                        );
+                        console.log('2 - 3. 나갈 배심원 소켓', socketsInRoom);
+                        socketsInRoom.forEach(async ([_, socket]) => {
+                            const disconnectedUserId = socket.user.userId;
+                            // 프론트로 데이터 전송
+                            io.to(roomId).emit(
+                                'userDisconnected',
+                                disconnectedUserId
+                            );
+                            // socket.disconnect();
+                            console.log(
+                                '남아있던 배심원 Id',
+                                disconnectedUserId
+                            );
+                        });
+                    }
+
+                    // 3. 방 삭제
+                    await deleteEmptyRooms();
+
+                    // 4. 모든 처리된 후 방 리스트 업데이트
+                    const roomList = await getRoomList(socket.kategorieId);
+
+                    // 5. 업데이트된 방 리스트 전달
+                    io.of('/roomList')
+                        .to(kategorieId)
+                        .emit('update_roomList', roomList);
+                    // --------------------------------------
+
+                    /* userInfo.roomId = 0;
                     userInfo.like = 0;
                     userInfo.hate = 0;
+                    // 무조건 debater 값은 0으로 초기화
                     userInfo.debater = 0;
                     userInfo.questionMark = 0;
                     userInfo.debaterPosition = 0;
-                    await userInfo.save();
-                    // 나갈 유저정보 초기화
+                    await userInfo.save(); */
                 });
             } catch (error) {
                 console.error('토론자 참여 처리 실패:', error);
@@ -349,6 +466,10 @@ module.exports = async (io) => {
             }
         });
 
+        //
+        //
+        //
+        //
         // 배심원으로 참가하기
         socket.on('joinJuror', async (roomId, kategorieId, done) => {
             try {
@@ -384,19 +505,39 @@ module.exports = async (io) => {
                 // 방에 입장
                 socket.roomId = roomId;
 
-                // 랜덤 아바타 미들웨어
-                await makeRandomAvatar(socket);
+                // 기존 아바타와 닉네임 유지
+                if (userInfo.afterRoomId === roomId) {
+                    console.log('3. 아바타 유지');
+                    socket.nickName = userInfo.nickName;
+                    socket.avatar = userInfo.avatar;
+                } else {
+                    console.log('3. 아바타 변경');
+                    // 랜덤 아바타 미들웨어
+                    await makeRandomAvatar(socket);
 
-                // 랜덤 닉네임 미들웨어
+                    // 랜덤 닉네임 미들웨어
 
-                await makeRandomNickName(socket);
+                    await makeRandomNickName(socket);
+                }
 
-                userInfo.avatar = JSON.stringify(socket.avatar);
-                userInfo.debater = 0;
+                await UserInfo.update(
+                    {
+                        avatar: socket.avatar,
+                        nickName: socket.nickName,
+                        roomId,
+                        afterRoomId: roomId,
+                    },
+                    {
+                        where: {
+                            userId: socket.user.userId,
+                        },
+                    }
+                );
+                /*                 userInfo.debater = 0;
                 userInfo.roomId = roomId;
-                userInfo.nickName = socket.nickName;
+                userInfo.afterRoomId = roomId;
 
-                // userInfo save
+                userInfo save
                 await userInfo.save().then(() => {
                     done();
 
@@ -437,14 +578,39 @@ module.exports = async (io) => {
                                 );
                             }
                         });
-                    }
+                    } */
 
-                    socket.join(roomId);
+                socket.join(roomId);
+                console.log('배심원 입장', socket.adapter.rooms);
 
-                    console.log('data =', data);
-                    // 연결된 socket 전체에게 입장한 유저 data 보내기
-                    io.to(roomId).emit('roomJoined', data);
+                const userListOnDB = await UserInfo.findAll({
+                    attributes: [
+                        'userId',
+                        'nickName',
+                        'avatar',
+                        'host',
+                        'debater',
+                    ],
+                    where: { roomId: socket.roomId },
                 });
+
+                console.log('방 입장 유저리스트 (DB)', userListOnDB);
+
+                const userList = await userListOnDB.map((user) => {
+                    return {
+                        userId: user.userId,
+                        nickName: user.nickName,
+                        avatar: user.avatar,
+                        host: user.host,
+                        debater: user.debater,
+                    };
+                });
+
+                console.log('방 입장 유저리스트', userList);
+
+                // console.log('data =', data);
+                // 연결된 socket 전체에게 입장한 유저 data 보내기
+                io.to(roomId).emit('roomJoined', userList);
 
                 //방인원 체크후 db업데이트
                 await updateRoomCount(roomId);
@@ -457,65 +623,72 @@ module.exports = async (io) => {
                     .to(kategorieId)
                     .emit('update_roomList', roomList);
 
+                done();
                 // 방 나가기
                 socket.on('leave_room', async (done) => {
                     done();
-                    socket.on('disconnecting', async () => {
-                        console.log(
-                            '5. joinJuror 내부 leave_room disconnecting'
-                        );
-                        // 해당 닉네임을 가진 사용자 정보를 data 배열에서 제거
-                        data = data.filter(
-                            (data) => data.userId !== userInfo.userId
-                        );
-
-                        // 유저정보 초기화
-                        userInfo.roomId = 0;
-
-                        // user 정보 초기화 후 db에 저장
-                        await userInfo.save();
-
-                        // 방 퇴장 유저 nickName 프론트로 전달
+                    socket.on('disconnecting', () => {
                         io.to(roomId).emit('roomLeft', socket.nickName);
-
-                        // 방 퇴장 후 남아있는 userData 보내기
-                        io.to(roomId).emit('roomJoined', data);
-                        // console.log('data =', data);
-
-                        // 방 인원 체크후 db업데이트
-                        await updateRoomCount(roomId);
-
-                        // 빈방 삭제
-                        await deleteEmptyRooms();
-                        await deleteVotes();
-
-                        const roomList = await getRoomList(kategorieId);
-
-                        // 네임스페이스에 룸리스트 보내기
-                        io.of('/roomList')
-                            .to(kategorieId)
-                            .emit('update_roomList', roomList);
-                        // console.log(
-                        //     '방 나가기로 인해 정상적으로 소켓 연결이 끊겼습니다.'
-                        // );
                     });
                 });
 
                 // socket disconnecting
                 socket.on('disconnecting', async () => {
                     console.log('3. joinJurror disconnecting');
-                    userInfo.roomId = 0;
-                    userInfo.like = 0;
-                    userInfo.hate = 0;
-                    userInfo.questionMark = 0;
-                    await userInfo.save();
+
+                    // 방 퇴장 유저 nickName 프론트로 전달
+                    if (userInfo.afterRoomId !== roomId) {
+                        io.to(roomId).emit('roomLeft', socket.nickName);
+                    }
+
+                    // data = data.filter(
+                    //     (item) => item.userId !== socket.user.userId
+                    // );
+
+                    // // 방 퇴장 후 남아있는 userData 보내기
+                    // io.to(roomId).emit('roomJoined', data);
+
+                    await UserInfo.update(
+                        {
+                            roomId: 0,
+                        },
+                        {
+                            where: {
+                                userId: socket.user.userId,
+                            },
+                        }
+                    );
+
+                    const userListOnDB = await UserInfo.findAll({
+                        attributes: [
+                            'userId',
+                            'nickName',
+                            'avatar',
+                            'host',
+                            'debater',
+                        ],
+                        where: { roomId: socket.roomId },
+                    });
+
+                    const userList = await userListOnDB.map((user) => {
+                        return {
+                            userId: user.userId,
+                            nickName: user.nickName,
+                            avatar: user.avatar,
+                            host: user.host,
+                            debater: user.debater,
+                        };
+                    });
+
+                    console.log('3. 배심원 나간 후 유저 리스트', userList);
+
+                    io.to(socket.roomId).emit('roomJoined', userList);
 
                     // 방 인원 체크후 db업데이트
                     await updateRoomCount(socket.roomId);
 
                     // 빈방 삭제
                     await deleteEmptyRooms();
-                    await deleteVotes();
 
                     const roomList = await getRoomList(socket.kategorieId);
 
@@ -706,14 +879,7 @@ module.exports = async (io) => {
                 };
 
                 // socket으로 변경
-                await socket.to(roomId).emit('voteResult', voteResult, () => {
-                    socket.to(roomId).emit('roomJoined', data);
-                });
-
-                voteRecord.debater1Count = 0;
-                voteRecord.debater2Count = 0;
-
-                await voteRecord.save();
+                await socket.to(roomId).emit('voteResult', voteResult);
 
                 console.log('(무승부)투표수 초기화', voteRecord.debater1Count);
                 console.log('(무승부)투표수 초기화', voteRecord.debater2Count);
@@ -752,21 +918,10 @@ module.exports = async (io) => {
                 loserCount: loserCount,
             };
 
-            console.log(
-                '투표 결과',
-                `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`
-            );
-
             console.log('voteResult', voteResult);
 
             // socket으로 변경
             await socket.to(roomId).emit('voteResult', voteResult);
-
-            // 투표 종료 후 데이터 보내주고 voteCount 초기화
-            voteRecord.debater1Count = 0;
-            voteRecord.debater2Count = 0;
-
-            await voteRecord.save();
 
             // 투표 종료 후 room 상태 게임종료 로 업데이트
             await Room.update({ gameStart: 0 }, { where: { roomId } });
@@ -790,10 +945,9 @@ module.exports = async (io) => {
                     socket.rooms.has(roomId)
                 );
             });
-
             if (loserSocket) {
                 const socket = loserSocket[1];
-                socket.leave(roomId);
+                // socket.leave(roomId);
 
                 // data 배열에서 패배자 삭제
                 socket.emit('loserExit', socket.user.userId);
@@ -802,168 +956,6 @@ module.exports = async (io) => {
                 console.log(`${loser.nickName}의 소켓을 찾을 수 없습니다.`);
             }
         };
-
-        /*  const checkVoteEndFunc = async (roomId, kategorieId, voteRecord) => {
-            try {
-                // 룸 정의
-                const room = await Room.findOne({
-                    where: { roomId },
-                });
-                // 투표 인원 체크
-                const panelCount = room.panel;
-                console.log('배심원수 = ', panelCount);
-                // 1번 토론자 조회
-                const debaterUser1 = await UserInfo.findOne({
-                    where: { roomId, host: 1, debater: 1 },
-                    attributes: ['userId', 'nickName', 'debater'],
-                });
-                // 2번 토론자 조회
-                const debaterUser2 = await UserInfo.findOne({
-                    where: { roomId, host: 0, debater: 1 },
-                    attributes: ['userId', 'nickName', 'debater'],
-                });
-                console.log('토론자1', debaterUser1.nickName);
-                console.log('토론자2', debaterUser2.nickName);
-
-                // 투표 수 가져오기
-                await voteRecord.reload();
-                console.log(voteRecord);
-                const voteCount =
-                    voteRecord.debater1Count + voteRecord.debater2Count;
-                console.log('투표수', voteCount);
-                if (voteCount === panelCount) {
-                    console.log('투표종료');
-                    let winner;
-                    let loser;
-                    let winnerCount;
-                    let loserCount;
-                    if (voteRecord.debater1Count === voteRecord.debater2Count) {
-                        console.log('뭐여 무승부여?');
-                        const voteResult = {
-                            debater1: debaterUser1.userId,
-                            debater1Count: voteRecord.debater1Count,
-                            debater2: debaterUser2.userId,
-                            debater2Count: voteRecord.debater2Count,
-                        };
-
-                        await io
-                            .to(roomId)
-                            .emit('voteResult', voteResult, () => {
-                                io.to(roomId).emit('roomJoined', data);
-                            });
-
-                        voteRecord.debater1Count = 0;
-                        voteRecord.debater2Count = 0;
-                        await voteRecord.save();
-
-                        console.log(
-                            '(무승부)투표수 초기화',
-                            voteRecord.debater1Count
-                        );
-                        console.log(
-                            '(무승부)투표수 초기화',
-                            voteRecord.debater2Count
-                        );
-
-                        // 투표 종료 후 room 상태 게임종료 로 업데이트
-                        await Room.update(
-                            { gameStart: 0 },
-                            { where: { roomId } }
-                        );
-
-                        const roomList = await getRoomList(kategorieId);
-
-                        // 네임스페이스에 룸리스트 보내기
-                        io.of('/roomList')
-                            .to(kategorieId)
-                            .emit('update_roomList', roomList);
-
-                        return;
-                    } else if (
-                        voteRecord.debater1Count > voteRecord.debater2Count
-                    ) {
-                        console.log('방장이 이겼네');
-                        winner = debaterUser1;
-                        winnerCount = voteRecord.debater1Count;
-                        loser = debaterUser2;
-                        loserCount = voteRecord.debater2Count;
-                    } else {
-                        console.log('도전자가 이겼네');
-                        winner = debaterUser2;
-                        winnerCount = voteRecord.debater2Count;
-                        loser = debaterUser1;
-                        loserCount = voteRecord.debater1Count;
-                    }
-                    const voteResult = {
-                        winner: winner.userId,
-                        winnerNickName: winner.nickName,
-                        winnerCount: winnerCount,
-                        loser: loser.userId,
-                        loserCount: loserCount,
-                    };
-                    console.log(
-                        '투표 결과',
-                        `우승자는 ${winnerCount}표를 받은 ${winner.nickName}입니다. 패자는 ${loserCount}표를 받은 ${loser.nickName}입니다.`
-                    );
-                    console.log('voteResult', voteResult);
-                    await io.to(roomId).emit('voteResult', voteResult);
-                    // 투표 종료 후 데이터 보내주고 voteCount 초기화
-                    voteRecord.debater1Count = 0;
-                    voteRecord.debater2Count = 0;
-                    await voteRecord.save();
-
-                    // 투표 종료 후 room 상태 게임종료 로 업데이트
-                    await Room.update({ gameStart: 0 }, { where: { roomId } });
-
-                    console.log(
-                        '(결과나옴)투표수 초기화',
-                        voteRecord.debater1Count
-                    );
-                    console.log(
-                        '(결과나옴)투표수 초기화',
-                        voteRecord.debater2Count
-                    );
-                    console.log('승자 닉네임', winner.nickName);
-                    console.log('승자 디베이터', winner.debater);
-                    console.log('데이터 =', data);
-                    console.log('투표후', data);
-                    console.log('패배자Id', loser.userId);
-                    // loser 퇴장 시키기
-                    // 소켓 정보 가져오기
-                    const allSockets = io.sockets.sockets;
-                    // 소켓 배열에서 loserSocket 조회
-                    const loserSocket = Array.from(allSockets).find(
-                        ([_, socket]) => {
-                            return (
-                                socket.nickName === loser.nickName &&
-                                socket.rooms.has(roomId)
-                            );
-                        }
-                    );
-
-                    if (loserSocket) {
-                        const socket = loserSocket[1];
-                        socket.leave(roomId);
-
-                        // data 배열에서 패배자 삭제
-                        socket.emit('loserExit', socket.user.userId);
-                        console.log('0');
-                    } else {
-                        console.log(
-                            `${loser.nickName}의 소켓을 찾을 수 없습니다.`
-                        );
-                    }
-                } else {
-                    console.log('debater 에게 투표가 되었습니다.');
-                }
-                socket.on('disconnecting', () => {
-                    console.log('6. vote disconnecting');
-                });
-            } catch (error) {
-                console.error('투표 처리 실패:', error);
-                socket.emit('error', '투표 처리에 실패했습니다.');
-            }
-        }; */
 
         socket.on('vote', async (roomId, host) => {
             console.log('투표 시 받아온 호스트 값', host);
@@ -993,6 +985,11 @@ module.exports = async (io) => {
         let timer = 30;
         socket.on('voteStart', async (roomId, kategorieId, done) => {
             let voteRecord = await Vote.findOne({ where: { roomId } });
+            // 투표 종료 후 데이터 보내주고 voteCount 초기화
+            voteRecord.debater1Count = 0;
+            voteRecord.debater2Count = 0;
+
+            await voteRecord.save();
 
             const room = await Room.findOne({
                 where: { roomId },
@@ -1012,18 +1009,37 @@ module.exports = async (io) => {
                 attributes: ['userId', 'nickName', 'debater'],
             });
 
-            const test = setInterval(async () => {
-                if (timer !== 0) {
-                    await voteRecord.reload();
+            if (debaterUser1 && debaterUser2 && room.gameStart === 1) {
+                const test = setInterval(async () => {
+                    if (timer !== 0) {
+                        await voteRecord.reload();
 
-                    const voteCount =
-                        voteRecord.debater1Count + voteRecord.debater2Count;
+                        const voteCount =
+                            voteRecord.debater1Count + voteRecord.debater2Count;
 
-                    console.log('투표수', voteCount);
+                        console.log('투표수', voteCount);
 
-                    if (voteCount === panelCount) {
+                        if (voteCount === panelCount) {
+                            clearInterval(test);
+                            timer = 30;
+                            checkVoteFunc(
+                                roomId,
+                                kategorieId,
+                                voteRecord,
+                                debaterUser1,
+                                debaterUser2
+                            );
+                            done();
+                        } else {
+                            timer -= 1;
+                            console.log(timer);
+                            // test
+                            socket.emit('sendRemainTime', timer.toString());
+                        }
+                    } else {
                         clearInterval(test);
                         timer = 30;
+
                         checkVoteFunc(
                             roomId,
                             kategorieId,
@@ -1032,38 +1048,79 @@ module.exports = async (io) => {
                             debaterUser2
                         );
                         done();
-                    } else {
-                        timer -= 1;
-                        console.log(timer);
-                        // test
-                        socket.emit('sendRemainTime', timer.toString());
                     }
-                } else {
-                    clearInterval(test);
-                    timer = 30;
-
-                    checkVoteFunc(
-                        roomId,
-                        kategorieId,
-                        voteRecord,
-                        debaterUser1,
-                        debaterUser2
-                    );
-                    done();
-                }
-            }, 1000);
+                }, 1000);
+            }
         });
 
+        // debater 수를 반환하는 함수
+        const countDebaters = async (roomId) => {
+            const debaterCount = await UserInfo.count({
+                where: {
+                    roomId: roomId,
+                    debater: 1,
+                },
+            });
+            return debaterCount;
+        };
+
+        socket.on('refresh', async () => {
+            console.log(
+                '*********************새로고침 받기*********************'
+            );
+        });
+
+        // 모든 유저가 소켓 연결이 끊겼을 때 발생하는 부분
         socket.on('disconnecting', async () => {
             console.log('1. connection disconnecting');
-            if (socket.user) {
+
+            // joinDebater나 JoinJuror를 거쳤을 경우
+            /*            if (socket.user) {
                 const exitUserInfo = await UserInfo.findOne({
                     where: { userId: socket.user.userId },
                 });
 
-                console.log('1. 종료한 유저의 호스트 값 = ', exitUserInfo.host);
+                // 현재 방의 토론자 인원 수 구하기
+                const debaterUser = await countDebaters(socket.roomId);
+                console.log('1. 남은 디바이터', debaterUser);
 
+                // DB에서 현재 방의 gameStart 값 조회
+                const room = await Room.findOne({
+                    where: { roomId: socket.roomId },
+                });
+
+                console.log(
+                    '1 - 1. 종료한 유저의 호스트 값 = ',
+                    exitUserInfo.host
+                );
+
+                // 연결 해제된 유저 data에서 삭제
+                data = data.filter(
+                    (item) => item.userId !== socket.user.userId
+                );
+
+                // 위에서 업데이트한 data 전송
+                console.log('1 - 2. 방인원 업데이트');
+                io.to(socket.roomId).emit('roomJoined', data);
+
+                // Case 2 : 게임이 시작되고 새로고침 시 강퇴
+
+                if (room.gameStart === 1 && debaterUser === 1) {
+                    console.log('/ 1. 게임중 나감');
+                    // debater가 나갈 경우 gameStart 값을 0으로 변경
+                    // debater가 아직 남아있는 경우
+                    room.gameStart = 0;
+                    await room.save();
+                    io.to(socket.roomId).emit('gameEnd');
+                    console.log(
+                        '새로고침해서 나가는 유저Id',
+                        socket.user.userId
+                    );
+                }
+
+                // Case 1 : 방장인 경우 방장 권한 위임
                 if (exitUserInfo.host === 1) {
+                    console.log('/ 2. 방장 나감');
                     const newHost = await UserInfo.findOne({
                         where: {
                             roomId: socket.roomId,
@@ -1071,6 +1128,8 @@ module.exports = async (io) => {
                             debater: 1,
                         },
                     });
+
+                    // 방장 이외의 토론자 존재
                     if (newHost) {
                         newHost.host = 1;
                         await newHost.save();
@@ -1082,32 +1141,46 @@ module.exports = async (io) => {
                         io.to(socket.roomId).emit('changeHost', newHost.userId);
                     }
                     exitUserInfo.host = 0;
+                    exitUserInfo.debater = 0;
                     await exitUserInfo.save();
                 }
 
-                data = data.filter(
-                    (item) => item.userId !== socket.user.userId
-                );
+                // 방 인원 체크후 db업데이트
+                await updateRoomCount(socket.roomId);
 
-                // 방 퇴장 후 남아있는 userData 보내기
-                if (socket.roomId) {
-                    io.to(socket.roomId).emit('roomJoined', data);
-
-                    // 방 인원 체크후 db업데이트
-                    await updateRoomCount(socket.roomId);
+                // Case 3 : 토론자가 아무도 없을 경우 배심원 강퇴
+                if (debaterUser === 0) {
+                    // debater가 0명이 되면 방에 남아 있는 모든 소켓 내보내기
+                    console.log('토론자 다 나갔냐?');
+                    const allSockets = io.sockets.sockets;
+                    const socketsInRoom = Array.from(allSockets).filter(
+                        ([_, socket]) => {
+                            return socket.rooms.has(socket.roomId);
+                        }
+                    );
+                    socketsInRoom.forEach(async ([_, socket]) => {
+                        const disconnectedUserId = socket.user.userId;
+                        // 프론트로 데이터 전송
+                        io.to(socket.roomId).emit(
+                            'userDisconnected',
+                            disconnectedUserId
+                        );
+                        // socket.disconnect();
+                        console.log('남아있던 배심원 Id', disconnectedUserId);
+                    });
                 }
                 // 빈방 삭제
                 await deleteEmptyRooms();
 
-                if (socket.kategorieId) {
-                    const roomList = await getRoomList(socket.kategorieId);
+                console.log('1 - 3. 방리스트 업데이트');
 
-                    // 네임스페이스에 룸리스트 보내기
-                    io.of('/roomList')
-                        .to(socket.kategorieId)
-                        .emit('update_roomList', roomList);
-                }
-            }
+                const roomList = await getRoomList(socket.kategorieId);
+                // 네임스페이스에 룸리스트 보내기
+                io.of('/roomList')
+                    .to(socket.kategorieId)
+                    .emit('update_roomList', roomList);
+                console.log('1 - 4. 방리스트 전송');
+            } */
         });
     });
 };
