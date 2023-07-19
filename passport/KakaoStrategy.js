@@ -44,17 +44,19 @@ module.exports = () => {
                             color: ['#6458d6,#a08f43,#6696f0,#9e756e,#ce285e'],
                         };
                         const avatarString = JSON.stringify(avatars);
-                        console.log('avatarString = ', avatarString);
 
                         await UserInfo.create({
                             userId: newUser.userId,
                             // 나머지 정보 저장
+                            roomId: 0,
                             nickName: profile.displayName,
                             avatar: avatarString,
                             like: 0,
                             hate: 0,
                             questionMark: 0,
-                            debater: false,
+                            debater: 0,
+                            host: 0,
+                            afterRoomId: 0,
                         });
 
                         const token = jwt.sign(

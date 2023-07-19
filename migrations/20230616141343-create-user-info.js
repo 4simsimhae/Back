@@ -15,6 +15,9 @@ module.exports = {
             roomId: {
                 type: Sequelize.INTEGER,
             },
+            afterRoomId: {
+                type: Sequelize.INTEGER,
+            },
             nickName: {
                 type: Sequelize.STRING,
             },
@@ -34,6 +37,9 @@ module.exports = {
                 type: Sequelize.INTEGER,
             },
             debater: {
+                type: Sequelize.INTEGER,
+            },
+            debatePosition: {
                 type: Sequelize.INTEGER,
             },
             createdAt: {
