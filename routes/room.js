@@ -59,43 +59,6 @@ router.get('/kategorie', async (req, res) => {
     }
 });
 
-//게임 방 리스트
-router.get('/roomlist/:kategorieId', async (req, res) => {
-    try {
-        const { kategorieId } = req.params;
-
-        const roomlist = await Room.findAll({
-            attributes: [
-                'roomId',
-                'KategorieName',
-                'roomName',
-                'debater',
-                'panel',
-            ],
-            where: { kategorieId },
-            //order: [],
-        });
-
-        //잘못된 kategorieId
-        if (kategorieId > 8 || kategorieId < 1) {
-            const response = new ApiResponse(
-                403,
-                '해당 카테고리를 찾을 수 없습니다.'
-            );
-            return res.status(403).json(response);
-        }
-
-        const response = new ApiResponse(200, '', roomlist);
-        return res.status(200).json(response);
-    } catch (error) {
-        const response = new ApiResponse(
-            500,
-            '예상하지 못한 서버 문제가 발생했습니다.'
-        );
-        return res.status(500).json(response);
-    }
-});
-
 //게임 방 상세정보
 router.get('/roomlist/room/:roomId', async (req, res) => {
     try {
@@ -314,24 +277,6 @@ router.put('/user', checkLogin, randomNickName, async (req, res) => {
             const response = new ApiResponse(200, '', []);
             return res.status(200).json(response);
         }
-    } catch (error) {
-        const response = new ApiResponse(
-            500,
-            '예상하지 못한 서버 문제가 발생했습니다.'
-        );
-        return res.status(500).json(response);
-    }
-});
-
-//방 삭제하기
-router.delete('/roomlist/:roomId', async (req, res) => {
-    try {
-        const { roomId } = req.params;
-        await Room.destroy({
-            where: { roomId },
-        });
-        const response = new ApiResponse(200, '방이 삭제되었습니다', []);
-        return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
             500,
