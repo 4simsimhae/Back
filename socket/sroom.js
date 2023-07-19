@@ -537,9 +537,8 @@ module.exports = async (io) => {
                 // 방 나가기
                 socket.on('leave_room', async (done) => {
                     done();
-                    socket.on('disconnecting', () => {
-                        io.to(roomId).emit('roomLeft', socket.nickName);
-                    });
+
+                    io.to(roomId).emit('roomLeft', socket.nickName);
                 });
 
                 // socket disconnecting
@@ -547,9 +546,8 @@ module.exports = async (io) => {
                     console.log('3. joinJurror disconnecting');
 
                     // 방 퇴장 유저 nickName 프론트로 전달
-                    if (userInfo.afterRoomId !== roomId) {
-                        io.to(roomId).emit('roomLeft', socket.nickName);
-                    }
+
+                    io.to(roomId).emit('roomLeft', socket.nickName);
 
                     await UserInfo.update(
                         {
