@@ -12,9 +12,10 @@ class ApiResponse {
 
 // Express에서 사용하는 미들웨어 함수
 module.exports = async (req, res, next) => {
+    console.log('****** 체크 로그인 미들웨어 시작 ******');
     try {
         const Authorization = req.header('Authorization');
-        console.log('아곤 받은 토큰 = ', Authorization);
+        // console.log('아곤 받은 토큰 = ', Authorization);
         // 토큰이 있는지 확인
         if (!Authorization) {
             console.log('토큰 없음 --------------');
@@ -23,13 +24,13 @@ module.exports = async (req, res, next) => {
             console.log('토큰 있음 ------------------?');
 
             const [authType, authToken] = Authorization.split(' ');
-            console.log('authType = ', authType);
-            console.log('authToken = ', authToken);
-            console.log('토큰 형식 ---------------');
+            // console.log('authType = ', authType);
+            // console.log('authToken = ', authToken);
+            // console.log('토큰 형식 ---------------');
 
             // authType === Bearer인지 확인
             if (authType !== 'Bearer' || !authToken) {
-                console.log('토큰 Bearer 타입 아님');
+                // console.log('토큰 Bearer 타입 아님');
                 res.locals.user = [];
             } else {
                 const { userId } = jwt.verify(
@@ -42,6 +43,7 @@ module.exports = async (req, res, next) => {
 
                 res.locals.user = user;
             }
+            console.log('****** 체크 로그인 미들웨어 확인 완료 *******');
         }
         next();
     } catch (error) {

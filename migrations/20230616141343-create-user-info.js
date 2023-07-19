@@ -15,7 +15,13 @@ module.exports = {
             roomId: {
                 type: Sequelize.INTEGER,
             },
+            afterRoomId: {
+                type: Sequelize.INTEGER,
+            },
             nickName: {
+                type: Sequelize.STRING,
+            },
+            avatar: {
                 type: Sequelize.STRING,
             },
             like: {
@@ -28,10 +34,13 @@ module.exports = {
                 type: Sequelize.INTEGER,
             },
             host: {
-                type: DataTypes.INTEGER,
+                type: Sequelize.INTEGER,
             },
             debater: {
-                type: DataTypes.INTEGER,
+                type: Sequelize.INTEGER,
+            },
+            debatePosition: {
+                type: Sequelize.INTEGER,
             },
             createdAt: {
                 allowNull: false,

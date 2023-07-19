@@ -4,10 +4,16 @@ const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
 const app = express();
 const passport = require('passport');
-const http = require('http');
-const server = http.createServer(app); //
+const https = require('httpolyglot');
+const fs = require('fs');
+// const http = require('http');
+// const server = http.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
+
+const path = require('path');
+const _dirname = path.resolve()
+const mediasoup = require('mediasoup');
 
 //swagger
 const swaggerUi = require('swagger-ui-express');
@@ -16,11 +22,26 @@ const swaggerDocs = require('./swagger.js');
 const indexRouter = require('./routes/index.js');
 const session = require('express-session');
 const authRouter = require('./routes/auth.js');
+// const mediasoupRouter = require('./mediasoup/mediasoup.js');
 
 app.use(express.json());
 app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+//정적파일 미들웨어 (public폴더)
+app.use('/sfu/:room', express.static(path.join(_dirname, 'public')))
+
+// SSL cert for HTTPS access
+const options = {
+    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+    }
+
+const httpsServer = https.createServer(options, app)
+httpsServer.listen(3000, () => {
+    console.log('listening on port: ' + 3000)
+})
 
 //CORS 설정
 const cors = require('cors');
@@ -30,17 +51,19 @@ app.use(
             'https://simsimhae.store',
             'http://localhost:3000',
             'https://front-black-delta.vercel.app',
+            'https://testmedia.vercel.app',
         ],
         credentials: true,
     })
 );
 
-const io = require('socket.io')(server, {
+const io = require('socket.io')(httpsServer, {
     cors: {
         origin: [
             'https://simsimhae.store',
             'http://localhost:3000',
             'https://front-black-delta.vercel.app',
+            'https://testmedia.vercel.app',
         ],
         credentials: true,
     },
@@ -48,6 +71,14 @@ const io = require('socket.io')(server, {
 });
 
 const socketHandlers = require('./socket');
+const mediasoupRouter = require('./mediasoup/mediasoup.js')
+
+let domain
+if (process.platform === "linux") {
+    domain = 'https://front-black-delta.vercel.app'
+} else {
+    domain = 'http://localhost:3000'
+}
 
 app.use(
     session({
@@ -55,8 +86,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
         cookie: {
-            // domain: 'http://localhost:3000',
-            domain: 'https://front-black-delta.vercel.app',
+            domain: domain,
             path: '/',
             secure: false,
             httpOnly: false,
@@ -96,16 +126,18 @@ kakao();
 
 app.use('/', authRouter);
 app.use('/api', [indexRouter]);
+// app.use('/sfu', mediasoupRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('simsimhae API / Use "/docs-api" Page');
 });
 
 socketHandlers(io);
+mediasoupRouter(io);
 
-server.listen(3000, () => {
-    console.log('3000 포트로 서버 연결');
-});
+// server.listen(3000, () => {
+//     console.log('3000 포트로 서버 연결');
+// });
 
 // 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
 // 요일 이름과 id값을 저장한 배열

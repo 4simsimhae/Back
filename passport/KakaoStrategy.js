@@ -8,7 +8,7 @@ module.exports = () => {
         new KakaoStrategy(
             {
                 clientID: process.env.KAKAO_ID,
-                callbackURL: '/auth/kakao/callback'
+                callbackURL: '/auth/kakao/callback',
             },
             // passport-kakao 콜백 함수
             async (accessToken, refreshToken, profile, done) => {
@@ -39,14 +39,24 @@ module.exports = () => {
                             kakaoId: profile.id, // 유저이메일 저장
                         });
 
+                        const avatars = {
+                            name: 'Chien-Shiung',
+                            color: ['#6458d6,#a08f43,#6696f0,#9e756e,#ce285e'],
+                        };
+                        const avatarString = JSON.stringify(avatars);
+
                         await UserInfo.create({
                             userId: newUser.userId,
                             // 나머지 정보 저장
+                            roomId: 0,
                             nickName: profile.displayName,
+                            avatar: avatarString,
                             like: 0,
                             hate: 0,
                             questionMark: 0,
-                            debater: false,
+                            debater: 0,
+                            host: 0,
+                            afterRoomId: 0,
                         });
 
                         const token = jwt.sign(

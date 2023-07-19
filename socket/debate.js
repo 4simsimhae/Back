@@ -2,9 +2,9 @@ const { UserInfo } = require('../models');
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
-        socket.onAny((event) => {
-            console.log(`Socket Event: ${event}`);
-        });
+        // socket.onAny((event) => {
+        //     console.log(`Socket Event: ${event}`);
+        // });
 
         socket.on('like', async (roomId, userId) => {
             try {

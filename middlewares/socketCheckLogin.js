@@ -3,42 +3,16 @@ const { User } = require('../models');
 
 module.exports = async (socket, next) => {
     try {
-        console.log('socket.handshake =', socket.handshake);
-        console.log('socket.id =', socket.id);
-        console.log('query=', socket.handshake.query);
+        console.log('****** 소켓 체크 로그인 미들웨어 시작 ******');
+
         const Authorization = socket.handshake.query.token;
-        console.log('받은 토큰 =', Authorization);
+        const [authType, authToken] = Authorization.split(' ');
+        const { userId } = jwt.verify(authToken, process.env.JWT_SECRET);
+        const user = await User.findOne({ where: { userId } });
 
-        socket.locals = {}; // 새로운 객체 생성
-        socket.locals.user = {}; // user 객체 정의
+        socket.user = user;
 
-        if (!Authorization) {
-            console.log('토큰 없음 --------------');
-            socket.locals.user = null;
-        } else {
-            console.log('토큰 있음 ------------------');
-
-            const [authType, authToken] = Authorization.split(' ');
-            console.log('Authorization =', authType, authToken);
-            console.log('토큰 형식 ---------------');
-
-            if (authType !== 'Bearer' || !authToken) {
-                console.log('토큰 Bearer 타입 아님');
-                socket.locals.user = null;
-            } else {
-                const { userId } = jwt.verify(
-                    authToken,
-                    process.env.JWT_SECRET
-                );
-                console.log('미들웨어 디코드한 유저 정보 =', userId);
-
-                const user = await User.findOne({ where: { userId } });
-                console.log('유저 정보를 소켓 로컬에 저장');
-                socket.locals.user = user;
-
-                console.log('넘기는유저아이디 =', socket.locals.user.userId);
-            }
-        }
+        console.log('****** 소켓 체크 로그인 미들웨어 확인 완료 ******');
         next(); // 다음 미들웨어 호출
     } catch (error) {
         console.error('로그인 체크 실패:', error);
