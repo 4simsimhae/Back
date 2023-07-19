@@ -1,10 +1,10 @@
-const { Chat, Room } = require('../models');
+const { Chat, Room } = require('./models');
 
 module.exports = (io) => {
     io.on('connection', (socket) => {
-        // socket.onAny((event) => {
-        //     console.log(`Socket Event: ${event}`);
-        // });
+        socket.onAny((event) => {
+            console.log(`Socket Event: ${event}`);
+        });
 
         // "enter_room" 이벤트를 처리하여 토론방에 입장합니다.
         socket.on('enter_room', (roomId, done) => {

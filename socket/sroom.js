@@ -47,6 +47,7 @@ const deleteEmptyRooms = async () => {
                 panel: 0,
             },
         });
+        console.log('빈 방 리스트', emptyRooms);
 
         // 빈 방 삭제
         await Promise.all(emptyRooms.map((room) => room.destroy()));

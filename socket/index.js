@@ -1,4 +1,4 @@
-const chat = require("./chat");
+const chat = require("../chat");
 const debate = require("./debate");
 const sroom = require("./sroom");
 
