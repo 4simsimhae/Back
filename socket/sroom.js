@@ -154,9 +154,6 @@ module.exports = async (io) => {
         });
     });
 
-    // 삭제 예정
-    let data = [];
-
     // socket connection
     io.on('connection', (socket) => {
         // 토론자로 참여하기
@@ -757,9 +754,6 @@ module.exports = async (io) => {
             io.to(roomId).emit('close_roulette', result, debatersInfo);
         });
 
-        let debater1Count = 0;
-        let debater2Count = 0;
-
         // 투표 결과 확인하기
         const checkVoteFunc = async (
             roomId,
@@ -835,10 +829,7 @@ module.exports = async (io) => {
             console.log('(결과나옴)투표수 초기화', voteRecord.debater1Count);
             console.log('(결과나옴)투표수 초기화', voteRecord.debater2Count);
             console.log('승자 닉네임', winner.nickName);
-            console.log('승자 디베이터', winner.debater);
-            console.log('데이터 =', data);
-            console.log('투표후', data);
-            console.log('패배자Id', loser.userId);
+            console.log('패배자 닉네임', loser.nickName);
 
             // loser 퇴장 시키기
             // 소켓 정보 가져오기
@@ -868,13 +859,7 @@ module.exports = async (io) => {
 
             // 데이터베이스에서 Vote 레코드를 조회하거나 생성
             const voteRecord = await Vote.findOne({ where: { roomId } });
-            // if (!voteRecord) {
-            //     voteRecord = await Vote.create({
-            //         roomId,
-            //         debater1Count: 0,
-            //         debater2Count: 0,
-            //     });
-            // }
+
             console.log('순서대로 진행되는 지 확인');
             // 전달받은 host값이 1이면 1번토론자 투표수 증가 , 0이면 2번토론자 투표수 증가
             if (host === 1) {
