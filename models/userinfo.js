@@ -29,6 +29,9 @@ module.exports = (sequelize, DataTypes) => {
             roomId: {
                 type: DataTypes.INTEGER,
             },
+            afterRoomId: {
+                type: DataTypes.INTEGER,
+            },
             nickName: {
                 type: DataTypes.STRING,
             },
@@ -48,6 +51,9 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
             },
             debater: {
+                type: DataTypes.INTEGER,
+            },
+            debatePosition: {
                 type: DataTypes.INTEGER,
             },
             createdAt: {
