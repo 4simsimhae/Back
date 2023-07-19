@@ -50,10 +50,12 @@ let consumingTransports = [];
 // 첫방 만들어지면 실행 (코드넣기)
 
 //첫 연결, sokiet ID 받기
-socket.on('connection-success', ({ socketId }) => {
-  console.log(socketId)
-  getLocalStream()
-})
+const newDebate = () => {
+  socket.on('connection-success', ({ socketId }) => {
+    console.log(socketId)
+    getLocalStream()
+  })
+}
 
 
 //첫 소켓연결시 audio 와 video 설정
