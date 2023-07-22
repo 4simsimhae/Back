@@ -22,7 +22,7 @@ RUN npm install mediasoup-client
 # ENV NODE_ENV development
 
 #가상 머신에 오픈할 포트
-EXPOSE 3000 4443
+EXPOSE 3000
 # EXPOSE 4443/UDP
 EXPOSE 2000-2020
 # EXPOSE 2000-2020/UDP
