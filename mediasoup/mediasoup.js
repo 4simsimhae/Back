@@ -428,7 +428,7 @@ connections.on('connection', async socket => {
         let announceip;
         if (process.platform === "linux") {
             listenip = "0.0.0.0";
-            announceip = "simsimhae.store";;//"172.17.0.1"; // "54.180.220.160" //기본 퍼블릭 "15.164.205.97"
+            announceip = "3.39.254.76";;//"172.17.0.1"; // "54.180.220.160" //기본 퍼블릭 "15.164.205.97"
             //"3.39.21.142" //인스턴스 퍼블릭 "3.39.254.76" //인스턴스 프라이빗 "172.31.12.132" //VPC IPv4 CIDR "172.31.0.0/16" //Docker 기본 port "127.17.0.1"
         } else {
             listenip = "127.0.0.1";
