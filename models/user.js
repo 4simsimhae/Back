@@ -27,6 +27,9 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 unique: true,
             },
+            nickName: {
+                type: DataTypes.STRING,
+            },
             createdAt: {
                 allowNull: false,
                 type: DataTypes.DATE,
