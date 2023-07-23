@@ -39,8 +39,8 @@ const options = {
     }
 
 const httpsServer = https.createServer(options, app)
-httpsServer.listen(3000, () => {
-    console.log('listening on port: ' + 3000)
+httpsServer.listen(3001, () => {
+    console.log('listening on port: ' + 3001)
 })
 
 //CORS 설정
@@ -77,12 +77,12 @@ const mediasoupRouter = require('./mediasoup/mediasoup.js')
 
 let domain
 if (process.platform === "linux") {
-    // domain = 'https://front-black-delta.vercel.app'
-    domain = 'https://test23-xi.vercel.app'
+    domain = 'https://front-black-delta.vercel.app'
+    // domain = 'https://test23-xi.vercel.app'
     // domain = 'http://localhost:3000'
 } else {
-    domain = 'http://localhost:3000'
-    // domain = 'https://test23-xi.vercel.app'
+    // domain = 'http://localhost:3000'
+    domain = 'https://test23-xi.vercel.app'
 }
 
 app.use(
