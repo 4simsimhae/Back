@@ -38,18 +38,12 @@ const options = {
     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
     }
 
-    if (process.platform === "linux") {
-        const httpsServer = https.createServer(options, app)
-        httpsServer.listen(3000, () => {
-            console.log('listening on port: ' + 3000)
-        })
-    }
-    else{
-        const httpsServer = https.createServer(options, app)
-        httpsServer.listen(3001, () => {
-            console.log('listening on port: ' + 3001)
-        })
-    }
+    
+    const httpsServer = https.createServer(options, app)
+    httpsServer.listen(3000, () => {
+        console.log('listening on port: ' + 3000)
+    })
+    
 
 //CORS 설정
 const cors = require('cors');
