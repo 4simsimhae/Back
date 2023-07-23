@@ -80,8 +80,8 @@ if (process.platform === "linux") {
     // domain = 'https://front-black-delta.vercel.app'
     domain = 'https://test23-xi.vercel.app'
 } else {
-    domain = 'http://localhost:3000'
-    // domain = 'https://test23-xi.vercel.app'
+    // domain = 'http://localhost:3000'
+    domain = 'https://test23-xi.vercel.app'
 }
 
 app.use(
