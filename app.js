@@ -52,7 +52,7 @@ app.use(
             'http://localhost:3000',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
-            'https://test23-xi.vercel.app'
+            'https://test23-xi.vercel.app',
         ],
         credentials: true,
     })
@@ -65,7 +65,7 @@ const io = require('socket.io')(httpsServer, {
             'http://localhost:3000',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
-            'https://test23-xi.vercel.app'
+            'https://test23-xi.vercel.app',
         ],
         credentials: true,
     },
@@ -81,6 +81,7 @@ if (process.platform === "linux") {
     domain = 'https://test23-xi.vercel.app'
 } else {
     domain = 'http://localhost:3000'
+    // domain = 'https://test23-xi.vercel.app'
 }
 
 app.use(

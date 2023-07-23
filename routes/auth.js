@@ -36,7 +36,10 @@ router.get(
                     `https://test23-xi.vercel.app/auth/kakao/callback/${query}`
                 );
             } else {
-                res.redirect(`http://localhost:3000/auth/kakao/callback/${query}`);
+                res.redirect(
+                    `http://localhost:3000/auth/kakao/callback/${query}`
+                    // `https://test23-xi.vercel.app/auth/kakao/callback/${query}`
+                    );
             }
         } catch (error) {
             const response = new ApiResponse(
