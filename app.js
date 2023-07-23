@@ -52,6 +52,7 @@ app.use(
             'http://localhost:3000',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
+            'https://test23-xi.vercel.app'
         ],
         credentials: true,
     })
@@ -64,6 +65,7 @@ const io = require('socket.io')(httpsServer, {
             'http://localhost:3000',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
+            'https://test23-xi.vercel.app'
         ],
         credentials: true,
     },
@@ -75,7 +77,8 @@ const mediasoupRouter = require('./mediasoup/mediasoup.js')
 
 let domain
 if (process.platform === "linux") {
-    domain = 'https://front-black-delta.vercel.app'
+    // domain = 'https://front-black-delta.vercel.app'
+    domain = 'https://test23-xi.vercel.app'
 } else {
     domain = 'http://localhost:3000'
 }
@@ -168,7 +171,7 @@ days.forEach((day) => {
                     kategorieName2 = ' ';
                 }
                 const { ask } = {
-                    ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 재미있는 VS 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
+                    ask: `${kategorieName1} 혹은 ${kategorieName2} 카테고리에 대한 황당하고 엽기스러운 VS 형식의 토론 주제 100가지를 숫자 없이 큰따옴표 안에 주제만 적어서 배열 형식으로 새로 나열해줘.`,
                 };
 
                 const reply = await callChatGPT([
