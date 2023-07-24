@@ -51,7 +51,7 @@ app.use(
     cors({
         origin: [
             'https://simsimhae.store',
-            'http://localhost:3000',
+            'http://localhost:3001',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
@@ -64,7 +64,7 @@ const io = require('socket.io')(httpsServer, {
     cors: {
         origin: [
             'https://simsimhae.store',
-            'http://localhost:3000',
+            'http://localhost:3001',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
@@ -79,9 +79,9 @@ const mediasoupRouter = require('./mediasoup/mediasoup.js')
 
 let domain
 if (process.platform === "linux") {
-    domain = 'https://front-black-delta.vercel.app'
+    // domain = 'https://front-black-delta.vercel.app'
     // domain = 'https://test23-xi.vercel.app'
-    // domain = 'http://localhost:3000'
+    domain = 'http://localhost:3001'
 } else {
     // domain = 'http://localhost:3000'
     // domain = 'https://test23-xi.vercel.app'
