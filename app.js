@@ -7,7 +7,7 @@ const passport = require('passport');
 const https = require('httpolyglot');
 const fs = require('fs');
 // const http = require('http');
-// const server = http.createServer(app);
+// const server = http.createServer(app); //
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
@@ -51,7 +51,7 @@ app.use(
     cors({
         origin: [
             'https://simsimhae.store',
-            'http://localhost:3001',
+            'http://localhost:3000',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
@@ -64,7 +64,7 @@ const io = require('socket.io')(httpsServer, {
     cors: {
         origin: [
             'https://simsimhae.store',
-            'http://localhost:3001',
+            'http://localhost:3000',
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
@@ -79,13 +79,12 @@ const mediasoupRouter = require('./mediasoup/mediasoup.js')
 
 let domain
 if (process.platform === "linux") {
-    // domain = 'https://front-black-delta.vercel.app'
+    domain = 'https://front-black-delta.vercel.app'
     // domain = 'https://test23-xi.vercel.app'
-    domain = 'http://localhost:3001'
+    // domain = 'http://localhost:3000'
 } else {
     // domain = 'http://localhost:3000'
-    // domain = 'https://test23-xi.vercel.app'
-    domain = 'https://front-black-delta.vercel.app'
+    domain = 'https://test23-xi.vercel.app'
 }
 
 app.use(
