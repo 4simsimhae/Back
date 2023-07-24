@@ -11,7 +11,7 @@ const fs = require('fs');
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 var OpenVidu = require('openvidu-node-client').OpenVidu;
-var OPENVIDU_URL = process.env.OPENVIDU_URL || 'http://localhost:4443';
+var OPENVIDU_URL = process.env.OPENVIDU_URL;
 var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
 var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 
@@ -84,10 +84,7 @@ const mediasoupRouter = require('./mediasoup/mediasoup.js')
 let domain
 if (process.platform === "linux") {
     domain = 'https://front-black-delta.vercel.app'
-    // domain = 'https://test23-xi.vercel.app'
-    // domain = 'http://localhost:3000'
 } else {
-    // domain = 'http://localhost:3000'
     domain = 'https://test23-xi.vercel.app'
 }
 
