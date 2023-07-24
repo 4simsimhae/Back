@@ -10,6 +10,10 @@ const fs = require('fs');
 // const server = http.createServer(app);
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
+var OpenVidu = require('openvidu-node-client').OpenVidu;
+var OPENVIDU_URL = process.env.OPENVIDU_URL || 'http://localhost:4443';
+var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
+var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 
 const path = require('path');
 const _dirname = path.resolve()
@@ -137,6 +141,24 @@ app.use('/api', [indexRouter]);
 
 app.get('/', (req, res) => {
     res.status(200).send('simsimhae API / Use "/docs-api" Page');
+});
+
+
+//openvidu
+app.post('/api/sessions', async (req, res) => {
+    var session = await openvidu.createSession(req.body);
+    res.send(session.sessionId);
+});
+app.post('/api/sessions/:sessionId/connections', async (req, res) => {
+    var session = openvidu.activeSessions.find(
+        (s) => s.sessionId === req.params.sessionId
+    );
+    if (!session) {
+        res.status(404).send();
+    } else {
+        var connection = await session.createConnection(req.body);
+        res.send(connection.token);
+    }
 });
 
 socketHandlers(io);
