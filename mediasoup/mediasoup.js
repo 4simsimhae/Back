@@ -432,7 +432,7 @@ connections.on('connection', async socket => {
             announceip = '127.0.0.1';//'172.31.4.169'; //'13.125.209.139';//"172.17.0.1"; // "54.180.220.160" //기본 퍼블릭 "15.164.205.97"
             //VPC IPv4 CIDR "172.31.0.0/16" //Docker 기본 port "127.17.0.1"
         } else {
-            listenip = "127.0.0.1";
+            listenip = "172.17.0.1";
             announceip = null;
         }
         console.log("🎧 listenip is : ", listenip);
