@@ -7,7 +7,7 @@ const passport = require('passport');
 const https = require('httpolyglot');
 const fs = require('fs');
 // const http = require('http');
-// const server = http.createServer(app); //
+// const server = http.createServer(app);
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 
