@@ -146,8 +146,8 @@ app.get('/', (req, res) => {
 // openVidu.createSession(properties).then(session => { ... });
 
 app.post('/api/sessions', async (req, res) => {
-    var session = await openvidu.createSession(req.body);
     console.log("/api/sessions 실행됨. = ", session.sessionId);
+    var session = await openvidu.createSession(req.body);
     res.send(session.sessionId);
 });
 app.post('/api/sessions/:sessionId/connections', async (req, res) => {
