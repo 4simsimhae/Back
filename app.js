@@ -161,13 +161,13 @@ app.post('/api/sessions/:sessionId/connections', async (req, res) => {
     }
 });
 
-var connectionProperties = {
-    role: "PUBLISHER",
-    data: "user_data"
-};
-session.createConnection(connectionProperties).then(connection => {
-    var token = connection.token; // Send this string to the client side
-});
+// var connectionProperties = {
+//     role: "PUBLISHER",
+//     data: "user_data"
+// };
+// session.createConnection(connectionProperties).then(connection => {
+//     var token = connection.token; // Send this string to the client side
+// });
 
 socketHandlers(io);
 mediasoupRouter(io);
