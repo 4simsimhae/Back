@@ -1,4 +1,4 @@
-require('dotenv').config();//
+require('dotenv').config(); //
 const express = require('express');
 const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
@@ -16,7 +16,7 @@ var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
 var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 
 const path = require('path');
-const _dirname = path.resolve()
+const _dirname = path.resolve();
 const mediasoup = require('mediasoup');
 
 //swagger
@@ -34,20 +34,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 //정적파일 미들웨어 (public폴더)
-app.use('/sfu/:room', express.static(path.join(_dirname, 'public')))
+app.use('/sfu/:room', express.static(path.join(_dirname, 'public')));
 
 // SSL cert for HTTPS access
 const options = {
     key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-    }
+    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8'),
+};
 
-    
-    const httpsServer = https.createServer(options, app)
-    httpsServer.listen(3000, () => {
-        console.log('listening on port: ' + 3000)
-    })
-    
+const httpsServer = https.createServer(options, app);
+httpsServer.listen(3001, () => {
+    console.log('listening on port: ' + 3001);
+});
 
 //CORS 설정
 const cors = require('cors');
@@ -79,13 +77,13 @@ const io = require('socket.io')(httpsServer, {
 });
 
 const socketHandlers = require('./socket');
-const mediasoupRouter = require('./mediasoup/mediasoup.js')
+const mediasoupRouter = require('./mediasoup/mediasoup.js');
 
-let domain
-if (process.platform === "linux") {
-    domain = 'https://front-black-delta.vercel.app'
+let domain;
+if (process.platform === 'linux') {
+    domain = 'https://front-black-delta.vercel.app';
 } else {
-    domain = 'https://test23-xi.vercel.app'
+    domain = 'https://test23-xi.vercel.app';
 }
 
 app.use(
@@ -139,7 +137,6 @@ app.use('/api', [indexRouter]);
 app.get('/', (req, res) => {
     res.status(200).send('simsimhae API / Use "/docs-api" Page');
 });
-
 
 //openvidu
 app.post('/api/sessions', async (req, res) => {
