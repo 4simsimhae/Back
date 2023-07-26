@@ -8,6 +8,7 @@ const https = require('httpolyglot');
 const fs = require('fs');
 // const http = require('http');
 // const server = http.createServer(app);
+var SERVER_PORT = 3000;
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 var OpenVidu = require('openvidu-node-client').OpenVidu;
@@ -15,8 +16,6 @@ var OPENVIDU_URL = process.env.OPENVIDU_URL;
 var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
 var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 var bodyParser = require("body-parser");
-
-const SERVER_PORT = 3000;
 
 const path = require('path');
 const _dirname = path.resolve()
@@ -153,11 +152,6 @@ app.use(bodyParser.json());
 // Serve static resources if available
 app.use(express.static(__dirname + '/public'));
 
-// Serve application
-server.listen(SERVER_PORT, () => {
-    console.log("Application started on port: ", SERVER_PORT);
-    console.warn('Application server connecting to OpenVidu at ' + OPENVIDU_URL);
-});
 
 app.post('/api/sessions', async (req, res) => {
     console.log("/api/sessions 실행됨. = ");
