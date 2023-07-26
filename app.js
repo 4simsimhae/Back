@@ -8,7 +8,7 @@ const https = require('httpolyglot');
 const fs = require('fs');
 // const http = require('http');
 // const server = http.createServer(app);
-var SERVER_PORT = 3000;
+var SERVER_PORT = 5000;
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 var OpenVidu = require('openvidu-node-client').OpenVidu;
@@ -150,14 +150,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // Serve static resources if available
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(_dirname + '/public'));
 
 
 app.post('/api/sessions', async (req, res) => {
-    console.log("/api/sessions 실행됨. = ");
+    console.log("/api/sessions 실행됨. => ");
     var session = await openvidu.createSession(req.body);
     console.log("session.sessionId = ", session.sessionId);
-    res.send(session.sessionId);
+    res.send(session.sessionId); 
 });
 app.post('/api/sessions/:sessionId/connections', async (req, res) => {
     var session = openvidu.activeSessions.find(
