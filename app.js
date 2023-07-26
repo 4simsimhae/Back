@@ -14,6 +14,7 @@ var OpenVidu = require('openvidu-node-client').OpenVidu;
 var OPENVIDU_URL = process.env.OPENVIDU_URL;
 var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
 var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
+var bodyParser = require("body-parser");
 
 const path = require('path');
 const _dirname = path.resolve()
@@ -142,8 +143,19 @@ app.get('/', (req, res) => {
 
 
 //openvidu
-// var properties = {};
-// openVidu.createSession(properties).then(session => { ... });
+// Allow application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+// Allow application/json
+app.use(bodyParser.json());
+
+// Serve static resources if available
+app.use(express.static(__dirname + '/public'));
+
+// Serve application
+server.listen(SERVER_PORT, () => {
+    console.log("Application started on port: ", SERVER_PORT);
+    console.warn('Application server connecting to OpenVidu at ' + OPENVIDU_URL);
+});
 
 app.post('/api/sessions', async (req, res) => {
     console.log("/api/sessions 실행됨. = ");
@@ -163,13 +175,8 @@ app.post('/api/sessions/:sessionId/connections', async (req, res) => {
     }
 });
 
-// var connectionProperties = {
-//     role: "PUBLISHER",
-//     data: "user_data"
-// };
-// session.createConnection(connectionProperties).then(connection => {
-//     var token = connection.token; // Send this string to the client side
-// });
+process.on('uncaughtException', err => console.error(err));
+
 
 socketHandlers(io);
 mediasoupRouter(io);
