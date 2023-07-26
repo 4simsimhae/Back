@@ -144,14 +144,6 @@ app.get('/', (req, res) => {
 
 
 //openvidu
-// Allow application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
-// Allow application/json
-app.use(bodyParser.json());
-
-// Serve static resources if available
-app.use(express.static(_dirname + '/public'));
-
 
 app.post('/api/sessions', async (req, res) => {
     console.log("/api/sessions 실행됨. => ");
@@ -170,8 +162,6 @@ app.post('/api/sessions/:sessionId/connections', async (req, res) => {
         res.send(connection.token);
     }
 });
-
-process.on('uncaughtException', err => console.error(err));
 
 
 socketHandlers(io);
