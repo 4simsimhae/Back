@@ -16,6 +16,8 @@ var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
 var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 var bodyParser = require("body-parser");
 
+const SERVER_PORT = 3000;
+
 const path = require('path');
 const _dirname = path.resolve()
 const mediasoup = require('mediasoup');
@@ -45,8 +47,8 @@ const options = {
 
     
     const httpsServer = https.createServer(options, app)
-    httpsServer.listen(3000, () => {
-        console.log('listening on port: ' + 3000)
+    httpsServer.listen(SERVER_PORT, () => {
+        console.log('listening on port: ' + SERVER_PORT)
     })
     
 
@@ -181,8 +183,8 @@ process.on('uncaughtException', err => console.error(err));
 socketHandlers(io);
 mediasoupRouter(io);
 
-// server.listen(3000, () => {
-//     console.log('3000 포트로 서버 연결');
+// server.listen(SERVER_PORT, () => {
+//     console.log('SERVER_PORT 포트로 서버 연결');
 // });
 
 // 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
