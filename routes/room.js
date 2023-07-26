@@ -13,6 +13,7 @@ const {
 const randomName = require('../middlewares/randomName.js');
 const checkLogin = require('../middlewares/checkLogin.js'); //유저아이디받기
 const randomNickName = require('../middlewares/randomNickName.js');
+const { Sequelize, Op } = require('sequelize');
 
 // 응답 객체
 class ApiResponse {
@@ -44,11 +45,36 @@ class ApiResponse {
 router.get('/kategorie', async (req, res) => {
     try {
         const kategorielist = await Kategorie.findAll({
-            attributes: ['KategorieId', 'KategorieName'],
-            //order: [],
+            attributes: ['kategorieId', 'kategorieName'],
         });
 
-        const response = new ApiResponse(200, '', kategorielist);
+        const kategorieList = await Promise.all(
+            kategorielist.map(async (kategorie) => {
+                const kategorieId = kategorie.kategorieId;
+                const kategorieName = kategorie.kategorieName;
+
+                const roomCounts = await Room.findAll({
+                    where: { kategorieId },
+                    attributes: [
+                        [
+                            Sequelize.literal(
+                                'IFNULL(SUM(`debater`) + SUM(`panel`), 0)'
+                            ),
+                            'totalUsersInKategory',
+                        ],
+                    ],
+                });
+
+                const totalUsersInKategory =
+                    roomCounts.length > 0
+                        ? roomCounts[0].getDataValue('totalUsersInKategory')
+                        : 0;
+
+                return { kategorieId, kategorieName, totalUsersInKategory };
+            })
+        );
+
+        const response = new ApiResponse(200, '', kategorieList);
         return res.status(200).json(response);
     } catch (error) {
         const response = new ApiResponse(
