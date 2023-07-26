@@ -61,7 +61,6 @@ app.use(
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
-            "*",
         ],
         credentials: true,
     })
@@ -75,7 +74,6 @@ const io = require('socket.io')(httpsServer, {
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
-            "*",
         ],
         credentials: true,
     },
