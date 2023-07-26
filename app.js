@@ -4,11 +4,11 @@ const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
 const app = express();
 const passport = require('passport');
-const https = require('httpolyglot');
+// const https = require('httpolyglot');
 const fs = require('fs');
-// const http = require('http');
-// const server = http.createServer(app);
-var SERVER_PORT = 3000;
+const http = require('http');
+const server = http.createServer(app);
+var SERVER_PORT = 5442;
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 var OpenVidu = require('openvidu-node-client').OpenVidu;
@@ -38,17 +38,17 @@ app.use(cookieParser());
 //정적파일 미들웨어 (public폴더)
 app.use('/sfu/:room', express.static(path.join(_dirname, 'public')))
 
-// SSL cert for HTTPS access
-const options = {
-    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-    }
+// // SSL cert for HTTPS access
+// const options = {
+//     key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+//     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+//     }
 
     
-    const httpsServer = https.createServer(options, app)
-    httpsServer.listen(SERVER_PORT, () => {
-        console.log('listening on port: ' + SERVER_PORT)
-    })
+//     const httpsServer = https.createServer(options, app)
+//     httpsServer.listen(SERVER_PORT, () => {
+//         console.log('listening on port: ' + SERVER_PORT)
+//     })
     
 
 //CORS 설정
@@ -66,7 +66,7 @@ app.use(
     })
 );
 
-const io = require('socket.io')(httpsServer, {
+const io = require('socket.io')(server, { //
     cors: {
         origin: [
             'https://simsimhae.store',
@@ -167,9 +167,9 @@ app.post('/api/sessions/:sessionId/connections', async (req, res) => {
 socketHandlers(io);
 mediasoupRouter(io);
 
-// server.listen(SERVER_PORT, () => {
-//     console.log('SERVER_PORT 포트로 서버 연결');
-// });
+server.listen(SERVER_PORT, () => {
+    console.log('SERVER_PORT 포트로 서버 연결');
+});
 
 // 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
 // 요일 이름과 id값을 저장한 배열
