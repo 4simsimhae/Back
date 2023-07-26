@@ -124,8 +124,21 @@ module.exports = async (io) => {
         deleteEmptyRooms();
         deleteVotes();
 
-        // // 접속 유저 IP 체크
-        // ipCheckFunc();
+        // const clientIP = socket.handshake.address;
+        // console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
+
+        // // 이미 접속된 IP 주소인지 확인
+        // if (connectedIPs.has(clientIP)) {
+        //     console.log(
+        //         '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
+        //     );
+        //     socket.emit('error', '이미 접속된 IP 주소입니다.');
+        //     socket.disconnect(true);
+        //     return;
+        // }
+
+        // // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
+        // connectedIPs.add(clientIP);
 
         // 룸리스트 전달
         socket.on('update', async (kategorieId) => {
@@ -160,9 +173,22 @@ module.exports = async (io) => {
         // 토론자로 참여하기
         socket.on('joinDebate', async (roomId, kategorieId, done) => {
             try {
-                /* ip check
-                    ipCheckFunc();
-                */
+                // const clientIP = socket.handshake.address;
+                // console.log('클라이언트가 접속했습니다. IP 주소:', clientIP);
+
+                // // 이미 접속된 IP 주소인지 확인
+                // if (connectedIPs.has(clientIP)) {
+                //     console.log(
+                //         '이미 접속된 IP 주소입니다. 접속을 거부합니다.'
+                //     );
+                //     socket.emit('error', '이미 접속된 IP 주소입니다.');
+                //     socket.disconnect(true);
+                //     return;
+                // }
+
+                // // 접속 허용되었을 경우, 해당 IP 주소를 연결된 IP 주소 목록에 추가
+                // connectedIPs.add(clientIP);
+
                 socket.kategorieId = kategorieId;
 
                 // socketCheckLogin 미들웨어 : DB에 존재하는 유저인지 확인
@@ -277,14 +303,14 @@ module.exports = async (io) => {
                 // 방 나가기 : 토론자 및 방장이 정상적인 루트로 나갔을 시 적용
                 socket.on('leave_room', async (done) => {
                     done();
-                    socket.on('disconnecting', () => {
-                        io.to(roomId).emit('roomLeft', socket.nickName);
-                    });
                 });
 
                 // socket disconnecting : 토론자 및 방장이 정상적인 루트로 나가지 않았을 시 작동되어야 할 부분
                 socket.on('disconnecting', async () => {
                     console.log('2. joinDebate disconnecting');
+
+                    // 나간 유저 닉네임 전달
+                    io.to(roomId).emit('roomLeft', socket.nickName);
 
                     // 현재 DB 내 방 정보
                     const room = await Room.findOne({
@@ -430,9 +456,7 @@ module.exports = async (io) => {
         // 배심원으로 참가하기
         socket.on('joinJuror', async (roomId, kategorieId, done) => {
             try {
-                // // ip check
-                // ipCheckFunc();
-
+                
                 // socketCheckLogin 미들웨어
                 await socketCheckLogin(socket, (err) => {
                     if (err) {
@@ -538,8 +562,6 @@ module.exports = async (io) => {
                 // 방 나가기
                 socket.on('leave_room', async (done) => {
                     done();
-
-                    io.to(roomId).emit('roomLeft', socket.nickName);
                 });
 
                 // socket disconnecting
@@ -547,7 +569,6 @@ module.exports = async (io) => {
                     console.log('3. joinJurror disconnecting');
 
                     // 방 퇴장 유저 nickName 프론트로 전달
-
                     io.to(roomId).emit('roomLeft', socket.nickName);
 
                     await UserInfo.update(

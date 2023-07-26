@@ -12,6 +12,9 @@ module.exports = {
             kakaoId: {
                 type: Sequelize.STRING,
             },
+            nickName: {
+                type: Sequelize.STRING,
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,

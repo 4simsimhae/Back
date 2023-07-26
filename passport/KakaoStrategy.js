@@ -37,6 +37,7 @@ module.exports = () => {
                         // 새로운 사용자일 경우
                         const newUser = await User.create({
                             kakaoId: profile.id, // 유저이메일 저장
+                            nickName: profile.displayName,
                         });
 
                         const avatars = {
