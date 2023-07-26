@@ -16,6 +16,7 @@ COPY . /opt/openvidu-basic-node
 
 # npm install 을 실행
 COPY package.json .
+COPY .env ./
 RUN npm install
 # RUN npm i mediasoup tutorials
 # RUN npm install express httpolyglot socket.io socket.io-client --save

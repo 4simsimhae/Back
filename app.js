@@ -8,7 +8,7 @@ const https = require('httpolyglot');
 const fs = require('fs');
 // const http = require('http');
 // const server = http.createServer(app);
-var SERVER_PORT = 5000;
+var SERVER_PORT = 3000;
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
 var OpenVidu = require('openvidu-node-client').OpenVidu;
@@ -61,6 +61,7 @@ app.use(
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
+            "*",
         ],
         credentials: true,
     })
@@ -74,6 +75,7 @@ const io = require('socket.io')(httpsServer, {
             'https://front-black-delta.vercel.app',
             'https://testmedia.vercel.app',
             'https://test23-xi.vercel.app',
+            "*",
         ],
         credentials: true,
     },
