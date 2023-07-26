@@ -139,8 +139,13 @@ app.get('/', (req, res) => {
 });
 
 //openvidu
+// var properties = {};
+// openVidu.createSession(properties).then(session => { ... });
+
 app.post('/api/sessions', async (req, res) => {
+    console.log("/api/sessions 실행됨. = ");
     var session = await openvidu.createSession(req.body);
+    console.log("session.sessionId = ", session.sessionId);
     res.send(session.sessionId);
 });
 app.post('/api/sessions/:sessionId/connections', async (req, res) => {
@@ -154,6 +159,14 @@ app.post('/api/sessions/:sessionId/connections', async (req, res) => {
         res.send(connection.token);
     }
 });
+
+// var connectionProperties = {
+//     role: "PUBLISHER",
+//     data: "user_data"
+// };
+// session.createConnection(connectionProperties).then(connection => {
+//     var token = connection.token; // Send this string to the client side
+// });
 
 socketHandlers(io);
 mediasoupRouter(io);
