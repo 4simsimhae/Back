@@ -4,17 +4,17 @@ const kakao = require('./passport/KakaoStrategy');
 const cookieParser = require('cookie-parser');
 const app = express();
 const passport = require('passport');
-// const https = require('httpolyglot');
+const https = require('httpolyglot');
 const fs = require('fs');
-const http = require('http');
-const server = http.createServer(app);
-var SERVER_PORT = 5442;
+// const http = require('http');
+// const server = http.createServer(app);
+var SERVER_PORT = 3000;
 var cron = require('node-cron');
 const { Kategorie, Subject } = require('./models');
-var OpenVidu = require('openvidu-node-client').OpenVidu;
-var OPENVIDU_URL = process.env.OPENVIDU_URL;
-var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
-var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
+// var OpenVidu = require('openvidu-node-client').OpenVidu;
+// var OPENVIDU_URL = process.env.OPENVIDU_URL;
+// var OPENVIDU_SECRET = process.env.OPENVIDU_SECRET || 'MY_SECRET';
+// var openvidu = new OpenVidu(OPENVIDU_URL, OPENVIDU_SECRET);
 var bodyParser = require("body-parser");
 
 const path = require('path');
@@ -38,17 +38,17 @@ app.use(cookieParser());
 //정적파일 미들웨어 (public폴더)
 app.use('/sfu/:room', express.static(path.join(_dirname, 'public')))
 
-// // SSL cert for HTTPS access
-// const options = {
-//     key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-//     cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
-//     }
+// SSL cert for HTTPS access
+const options = {
+    key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
+    cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+    }
 
     
-//     const httpsServer = https.createServer(options, app)
-//     httpsServer.listen(SERVER_PORT, () => {
-//         console.log('listening on port: ' + SERVER_PORT)
-//     })
+    const httpsServer = https.createServer(options, app)
+    httpsServer.listen(SERVER_PORT, () => {
+        console.log('listening on port: ' + SERVER_PORT)
+    })
     
 
 //CORS 설정
@@ -66,7 +66,7 @@ app.use(
     })
 );
 
-const io = require('socket.io')(server, { //
+const io = require('socket.io')(httpsServer, { //
     cors: {
         origin: [
             'https://simsimhae.store',
@@ -143,33 +143,33 @@ app.get('/', (req, res) => {
 });
 
 
-//openvidu
+// //openvidu
 
-app.post('/api/sessions', async (req, res) => {
-    console.log("/api/sessions 실행됨. => ");
-    var session = await openvidu.createSession(req.body);
-    console.log("session.sessionId = ", session.sessionId);
-    res.send(session.sessionId); 
-});
-app.post('/api/sessions/:sessionId/connections', async (req, res) => {
-    var session = openvidu.activeSessions.find(
-        (s) => s.sessionId === req.params.sessionId
-    );
-    if (!session) {
-        res.status(404).send();
-    } else {
-        var connection = await session.createConnection(req.body);
-        res.send(connection.token);
-    }
-});
+// app.post('/api/sessions', async (req, res) => {
+//     console.log("/api/sessions 실행됨. => ");
+//     var session = await openvidu.createSession(req.body);
+//     console.log("session.sessionId = ", session.sessionId);
+//     res.send(session.sessionId); 
+// });
+// app.post('/api/sessions/:sessionId/connections', async (req, res) => {
+//     var session = openvidu.activeSessions.find(
+//         (s) => s.sessionId === req.params.sessionId
+//     );
+//     if (!session) {
+//         res.status(404).send();
+//     } else {
+//         var connection = await session.createConnection(req.body);
+//         res.send(connection.token);
+//     }
+// });
 
 
 socketHandlers(io);
 mediasoupRouter(io);
 
-server.listen(SERVER_PORT, () => {
-    console.log('SERVER_PORT 포트로 서버 연결');
-});
+// server.listen(SERVER_PORT, () => {
+//     console.log('SERVER_PORT 포트로 서버 연결');
+// });
 
 // 매일 자정에 chatGPT를 이용하여 새로운 주제 받기
 // 요일 이름과 id값을 저장한 배열
