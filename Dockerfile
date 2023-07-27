@@ -10,28 +10,22 @@ RUN mkdir -p /app
 WORKDIR /app
 # 현재 Dockerfile 있는 경로의 모든 파일을 /app 에 복사
 ADD . /app
-
-# # Copy openvidu-basic-node
-# COPY . /opt/openvidu-basic-node
-
 # npm install 을 실행
 COPY package.json .
-# COPY .env ./
 RUN npm install
-# RUN npm i mediasoup tutorials
-# RUN npm install express httpolyglot socket.io socket.io-client --save
-# RUN npm install mediasoup
-# RUN npm install mediasoup-client
-# RUN npm --prefix /opt/openvidu-basic-node install
-# WORKDIR /opt/openvidu-basic-node
+RUN npm i mediasoup tutorials
+RUN npm install express httpolyglot socket.io socket.io-client --save
+RUN npm install mediasoup
+RUN npm install mediasoup-client
 
 #환경변수 NODE_ENV 의 값을 development 로 설정
 # ENV NODE_ENV development
 
 #가상 머신에 오픈할 포트
-EXPOSE 3000 
-EXPOSE 2000-2100
-EXPOSE 2000-2100/UDP
+EXPOSE 3000 4443
+# EXPOSE 4443/UDP
+EXPOSE 2000-2020
+EXPOSE 2000-2020/UDP
 # EXPOSE 22 80 443 3478
 # EXPOSE 3478/UDP
 # EXPOSE 40000-57000
